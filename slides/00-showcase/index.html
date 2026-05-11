@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎭 Pura Magia — Animation Showcase</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Variables ─────────────────────────────────────────── */
+    :root {
+      --bg:     #030308;
+      --surf:   #0d0d1a;
+      --border: rgba(255,255,255,0.07);
+      --cyan:   #00d2ff;
+      --purple: #9333ea;
+      --pink:   #ec4899;
+      --orange: #f97316;
+      --green:  #00ff87;
+      --text:   #f1f5f9;
+      --muted:  #64748b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── Cursor ────────────────────────────────────────────── */
+    #cur  { position:fixed; width:10px; height:10px; border-radius:50%; background:var(--cyan); pointer-events:none; z-index:9999; mix-blend-mode:screen; transition:background .2s; }
+    #cur2 { position:fixed; width:38px; height:38px; border-radius:50%; border:1.5px solid var(--cyan); pointer-events:none; z-index:9998; opacity:.5; }
+
+    /* ── Fixed BG canvas ───────────────────────────────────── */
+    #bg-canvas { position:fixed; inset:0; width:100%; height:100%; z-index:-2; pointer-events:none; }
+
+    /* ── Grid overlay ──────────────────────────────────────── */
+    .grid-bg {
+      position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(0,210,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,210,255,.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    /* ── Progress bar ──────────────────────────────────────── */
+    #prog { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink)); transform:scaleX(0); transform-origin:left; z-index:200; }
+
+    /* ── Navbar ────────────────────────────────────────────── */
+    #nav {
+      position:fixed; top:1.25rem; left:50%; transform:translateX(-50%);
+      background:rgba(13,13,26,.85); backdrop-filter:blur(20px);
+      border:1px solid var(--border); border-radius:100px;
+      padding:.5rem 1.5rem; display:flex; align-items:center; gap:1rem;
+      z-index:100; font-size:.82rem; white-space:nowrap;
+    }
+    #nav a { color:var(--muted); text-decoration:none; transition:color .2s; }
+    #nav a:hover { color:var(--cyan); }
+    .nd {
+      width:7px; height:7px; border-radius:50%; background:var(--muted);
+      cursor:pointer; transition:background .3s, transform .3s;
+    }
+    .nd.on { background:var(--cyan); transform:scale(1.5); }
+
+    /* ── Section base ──────────────────────────────────────── */
+    .sec {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: clamp(4rem,10vh,7rem) clamp(1.5rem,6vw,5rem);
+      max-width: 1180px; margin: 0 auto;
+      position: relative;
+    }
+
+    .sec-full { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:clamp(4rem,10vh,7rem) clamp(1.5rem,6vw,5rem); position:relative; }
+
+    /* ── Labels ────────────────────────────────────────────── */
+    .lbl {
+      font-family:'JetBrains Mono',monospace; font-size:.72rem;
+      letter-spacing:.2em; text-transform:uppercase;
+      color:var(--cyan); margin-bottom:.75rem;
+      display:flex; align-items:center; gap:.5rem;
+    }
+    .lbl::before { content:'//'; opacity:.4; }
+
+    /* ── Typography ────────────────────────────────────────── */
+    h1 { font-size:clamp(3.5rem,9vw,8rem); font-weight:900; line-height:1; letter-spacing:-.04em; }
+    h2 { font-size:clamp(2rem,5vw,3.8rem); font-weight:800; line-height:1.1; letter-spacing:-.03em; margin-bottom:.75rem; }
+    .desc { color:var(--muted); font-size:clamp(.95rem,1.8vw,1.15rem); max-width:600px; line-height:1.75; }
+
+    /* ── Gradient text ─────────────────────────────────────── */
+    .gc { background:linear-gradient(135deg,var(--cyan),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .gp { background:linear-gradient(135deg,var(--pink),var(--orange)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .gg { background:linear-gradient(135deg,var(--green),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+    /* ── Glass card ────────────────────────────────────────── */
+    .glass {
+      background:rgba(13,13,26,.55); backdrop-filter:blur(20px);
+      border:1px solid var(--border); border-radius:16px; padding:1.75rem;
+    }
+
+    /* ── Button ────────────────────────────────────────────── */
+    .btn {
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.65rem 1.4rem; border-radius:8px; font-weight:600;
+      font-size:.88rem; cursor:pointer; border:none; text-decoration:none;
+      transition:transform .2s,box-shadow .2s;
+    }
+    .btn:hover { transform:translateY(-2px); }
+    .btn-c { background:var(--cyan); color:#030308; }
+    .btn-g { background:rgba(255,255,255,.06); color:var(--text); border:1px solid var(--border); }
+
+    /* ── Hero ──────────────────────────────────────────────── */
+    #s0 { text-align:center; }
+    .hero-badge {
+      display:inline-flex; align-items:center; gap:.5rem;
+      font-size:.78rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+      color:var(--cyan); background:rgba(0,210,255,.08); border:1px solid rgba(0,210,255,.2);
+      padding:.35rem 1rem; border-radius:100px; margin-bottom:2rem;
+    }
+    #htitle span { display:inline-block; will-change:transform,opacity; }
+    .scroll-hint { position:absolute; bottom:2rem; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:.4rem; color:var(--muted); font-size:.78rem; }
+    .arrow-dn { width:16px; height:16px; border-right:2px solid var(--cyan); border-bottom:2px solid var(--cyan); transform:rotate(45deg); }
+
+    /* ── GSAP Balls ────────────────────────────────────────── */
+    .balls-wrap { display:flex; align-items:flex-end; justify-content:center; gap:1.5rem; height:220px; margin:1.5rem 0; }
+    .ball { width:50px; height:50px; border-radius:50%; will-change:transform; flex-shrink:0; }
+    .b1 { background:var(--cyan);   box-shadow:0 0 24px var(--cyan); }
+    .b2 { background:var(--purple); box-shadow:0 0 24px var(--purple); }
+    .b3 { background:var(--pink);   box-shadow:0 0 24px var(--pink); }
+    .b4 { background:var(--orange); box-shadow:0 0 24px var(--orange); }
+    .b5 { background:var(--green);  box-shadow:0 0 24px var(--green); }
+
+    /* ── Stagger grid ──────────────────────────────────────── */
+    .sg { display:grid; grid-template-columns:repeat(16,1fr); gap:6px; cursor:pointer; margin:1.5rem 0; width:100%; max-width:700px; }
+    .sd { aspect-ratio:1; border-radius:50%; background:rgba(0,210,255,.2); will-change:transform,background; }
+
+    /* ── Text split demo ───────────────────────────────────── */
+    #split-demo { font-size:clamp(1.4rem,3.5vw,2.5rem); font-weight:800; cursor:pointer; user-select:none; text-align:center; }
+    #split-demo span { display:inline-block; }
+
+    /* ── ScrollTrigger counters ────────────────────────────── */
+    .counters { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1.25rem; width:100%; max-width:660px; margin:2rem 0; }
+    .cnt-val { font-size:2.8rem; font-weight:900; line-height:1; }
+    .cnt-label { font-size:.8rem; color:var(--muted); margin-top:.2rem; }
+
+    /* ── Rocket track ──────────────────────────────────────── */
+    #rocket-track { width:100%; max-width:680px; height:72px; background:rgba(0,210,255,.04); border:1px solid var(--border); border-radius:12px; position:relative; overflow:hidden; margin:1.5rem 0; }
+    #rocket-track .trail { position:absolute; top:50%; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--cyan),transparent); opacity:.2; transform:translateY(-50%); }
+    #rocket { position:absolute; top:50%; left:0; font-size:2.2rem; transform:translate(0,-50%); will-change:transform; }
+
+    /* ── Anime.js blobs ────────────────────────────────────── */
+    .anime-grid { display:flex; flex-wrap:wrap; gap:2.5rem; align-items:flex-start; justify-content:center; margin-top:2rem; }
+    .anime-demo { text-align:center; }
+    .anime-demo p { font-size:.78rem; color:var(--muted); margin-bottom:.75rem; }
+
+    /* ── Three.js canvas ───────────────────────────────────── */
+    #c3d { width:100%; max-width:680px; height:420px; border-radius:18px; border:1px solid var(--border); cursor:grab; display:block; }
+    #c3d:active { cursor:grabbing; }
+
+    /* ── CSS Magic ─────────────────────────────────────────── */
+    .orb-wrap { position:relative; width:100%; max-width:800px; height:280px; }
+    .orb { position:absolute; border-radius:50%; filter:blur(70px); opacity:.14; }
+
+    .glass-card {
+      background:rgba(13,13,26,.45); backdrop-filter:blur(24px);
+      border:1px solid var(--border); border-radius:16px; padding:1.5rem;
+      position:relative; overflow:hidden;
+      animation: float 3s ease-in-out infinite;
+    }
+    .glass-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(0,210,255,.05),transparent); }
+    @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-12px); } }
+
+    .neon-txt {
+      font-size:clamp(2rem,5vw,3.5rem); font-weight:900;
+      color:var(--cyan);
+      text-shadow:0 0 20px var(--cyan), 0 0 40px var(--cyan), 0 0 80px rgba(0,210,255,.4);
+      animation: flicker 4s infinite;
+    }
+    @keyframes flicker {
+      0%,19%,21%,23%,25%,54%,56%,100% { text-shadow:0 0 20px var(--cyan),0 0 40px var(--cyan),0 0 80px rgba(0,210,255,.4); }
+      20%,24%,55% { text-shadow:none; opacity:.8; }
+    }
+
+    /* Animated gradient border */
+    @property --angle { syntax:'<angle>'; initial-value:0deg; inherits:false; }
+    .grad-border {
+      position:relative; padding:1.5rem 2rem; border-radius:14px; background:var(--surf);
+      font-family:'JetBrains Mono',monospace; font-size:1rem; color:var(--green);
+      overflow:hidden; max-width:480px; margin:0 auto;
+    }
+    .grad-border::before {
+      content:''; position:absolute; inset:-2px; border-radius:16px;
+      background:linear-gradient(var(--angle),var(--cyan),var(--purple),var(--pink),var(--orange),var(--cyan));
+      z-index:-1; animation:spin-border 3s linear infinite;
+    }
+    @keyframes spin-border { to { --angle:360deg; } }
+
+    .typewriter-txt {
+      overflow:hidden; white-space:nowrap; border-right:2px solid var(--green);
+      animation:type 4s steps(38) infinite, blink .5s step-end infinite alternate;
+      width:0;
+    }
+    @keyframes type { 0%,100%{width:0} 40%,85%{width:100%} }
+    @keyframes blink  { 50%{border-color:transparent} }
+
+    /* ── Mermaid ───────────────────────────────────────────── */
+    .mermaid-wrap { background:rgba(13,13,26,.7); border:1px solid var(--border); border-radius:16px; padding:2rem; width:100%; max-width:720px; overflow-x:auto; }
+
+    /* ── Finale tech grid ──────────────────────────────────── */
+    .tg { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:1rem; width:100%; max-width:940px; }
+    .tc { background:rgba(13,13,26,.5); border:1px solid var(--border); border-radius:12px; padding:1.1rem 1.25rem; display:flex; align-items:center; gap:.9rem; transition:border-color .25s,transform .25s; }
+    .tc:hover { border-color:var(--cyan); transform:translateY(-2px); }
+    .tc-icon { font-size:1.8rem; flex-shrink:0; }
+    .tc-name { font-weight:600; font-size:.9rem; }
+    .tc-use  { font-size:.72rem; color:var(--muted); margin-top:.15rem; }
+  </style>
+</head>
+<body>
+
+<!-- ── Fixed elements ──────────────────────────────────── -->
+<canvas id="bg-canvas"></canvas>
+<div class="grid-bg"></div>
+<div id="cur"></div>
+<div id="cur2"></div>
+<div id="prog"></div>
+
+<!-- ── Navbar ──────────────────────────────────────────── -->
+<nav id="nav">
+  <a href="../../index.html">← Menú</a>
+  <div class="nd on" data-i="0"></div>
+  <div class="nd" data-i="1"></div>
+  <div class="nd" data-i="2"></div>
+  <div class="nd" data-i="3"></div>
+  <div class="nd" data-i="4"></div>
+  <div class="nd" data-i="5"></div>
+  <div class="nd" data-i="6"></div>
+  <div class="nd" data-i="7"></div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     §0  HERO
+══════════════════════════════════════════════════════════ -->
+<section class="sec-full" id="s0" style="text-align:center;">
+  <div class="hero-badge" id="hbadge">🎭 ACM Week 2026 · Animation Showcase</div>
+
+  <h1 id="htitle">
+    <span>P</span><span>u</span><span>r</span><span>a</span>&nbsp;<span class="gc">M</span><span class="gc">a</span><span class="gc">g</span><span class="gc">i</span><span class="gc">a</span>
+  </h1>
+
+  <p class="desc" id="hsub" style="margin:.75rem auto 2.5rem;font-size:clamp(1rem,2.2vw,1.3rem);">
+    GSAP · Three.js · Anime.js · Lottie · Mermaid · CSS Magic · ScrollTrigger.<br/>
+    Todo lo que las web slides pueden hacer.
+  </p>
+
+  <div style="display:flex;gap:.9rem;flex-wrap:wrap;justify-content:center;" id="hbtns">
+    <button class="btn btn-c" id="btn-hero-replay">▶ Replay hero</button>
+    <a href="../../index.html" class="btn btn-g">← Ver todas</a>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll para descubrir</span>
+    <div class="arrow-dn" id="arrow-bounce"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §1  GSAP — TIMELINES & STAGGER
+══════════════════════════════════════════════════════════ -->
+<section class="sec" id="s1">
+  <p class="lbl">01 · GSAP</p>
+  <h2>Timelines &amp; <span class="gc">Stagger</span></h2>
+  <p class="desc">Coreografía perfecta: múltiples elementos en sintonía, con control total sobre cada fotograma.</p>
+
+  <!-- Balls -->
+  <div class="balls-wrap">
+    <div class="ball b1" id="b1"></div>
+    <div class="ball b2" id="b2"></div>
+    <div class="ball b3" id="b3"></div>
+    <div class="ball b4" id="b4"></div>
+    <div class="ball b5" id="b5"></div>
+  </div>
+  <button class="btn btn-g" id="btn-balls" style="margin-bottom:2rem;font-size:.84rem;">▶ Replay choreography</button>
+
+  <!-- Stagger grid -->
+  <p style="font-size:.8rem;color:var(--muted);margin-bottom:.6rem;align-self:flex-start;">Stagger grid — click / hover</p>
+  <div class="sg" id="sg"></div>
+
+  <!-- Text split -->
+  <div style="margin-top:2.5rem;width:100%;text-align:center;">
+    <div id="split-demo" title="Click para explotar">
+      <span>Click aquí para explotar ✨</span>
+    </div>
+    <p style="color:var(--muted);font-size:.76rem;margin-top:.4rem;">GSAP character split · from random positions</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §2  GSAP SCROLLTRIGGER
+══════════════════════════════════════════════════════════ -->
+<section class="sec" id="s2" style="min-height:180vh;">
+  <p class="lbl">02 · ScrollTrigger</p>
+  <h2>Scroll como <span class="gc">lienzo</span></h2>
+  <p class="desc">Revelado de texto, contadores y objetos controlados por el scroll — sin una línea de CSS de animación.</p>
+
+  <!-- Words -->
+  <div id="words" style="font-size:clamp(1.6rem,4vw,2.8rem);font-weight:800;line-height:1.5;margin:3rem 0;max-width:680px;text-align:center;">
+    <span class="wd" style="opacity:.12;">El</span>
+    <span class="wd" style="opacity:.12;">scroll</span>
+    <span class="wd" style="opacity:.12;">es</span>
+    <span class="wd" style="opacity:.12;">tu</span>
+    <span class="wd gc" style="opacity:.12;">lienzo.</span>
+    <span class="wd" style="opacity:.12;">Cada</span>
+    <span class="wd" style="opacity:.12;">píxel</span>
+    <span class="wd" style="opacity:.12;">cuenta</span>
+    <span class="wd" style="opacity:.12;">una</span>
+    <span class="wd gp" style="opacity:.12;">historia.</span>
+  </div>
+
+  <!-- Counters -->
+  <div class="counters">
+    <div class="glass" style="text-align:center;">
+      <div class="cnt-val gc" data-to="11000000" data-sfx="M+">0</div>
+      <p class="cnt-label">descargas / semana (GSAP)</p>
+    </div>
+    <div class="glass" style="text-align:center;">
+      <div class="cnt-val gp" data-to="60" data-sfx="fps">0</div>
+      <p class="cnt-label">frames garantizados</p>
+    </div>
+    <div class="glass" style="text-align:center;">
+      <div class="cnt-val gg" data-to="100" data-sfx="%">0</div>
+      <p class="cnt-label">sin dependencias extra</p>
+    </div>
+  </div>
+
+  <!-- Rocket scrub -->
+  <div id="rocket-track">
+    <div class="trail"></div>
+    <div id="rocket">🚀</div>
+  </div>
+  <p style="font-size:.76rem;color:var(--muted);">El cohete avanza con tu scroll ↑↓</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §3  ANIME.JS
+══════════════════════════════════════════════════════════ -->
+<section class="sec" id="s3">
+  <p class="lbl">03 · Anime.js</p>
+  <h2>SVG <span class="gp">Morphing</span> &amp; Motion</h2>
+  <p class="desc">Formas que se transforman, líneas que se dibujan, objetos que siguen trayectorias. Ligero y preciso.</p>
+
+  <div class="anime-grid">
+
+    <!-- Blob morphing -->
+    <div class="anime-demo">
+      <p>SVG blob morphing continuo</p>
+      <svg id="blob-svg" viewBox="0 0 200 200" width="200" height="200">
+        <defs>
+          <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ec4899"/>
+            <stop offset="100%" stop-color="#9333ea"/>
+          </linearGradient>
+          <filter id="glow-f">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <path id="blob-path" fill="url(#bg1)" opacity=".88" filter="url(#glow-f)"
+          d="M100 38 C142 38 162 62 162 100 C162 138 142 162 100 162 C58 162 38 138 38 100 C38 62 58 38 100 38 Z"/>
+      </svg>
+    </div>
+
+    <!-- Line draw -->
+    <div class="anime-demo">
+      <p>SVG line drawing</p>
+      <svg id="draw-svg" viewBox="0 0 200 200" width="200" height="200">
+        <path id="dp1" d="M10,100 Q55,20 100,100 T190,100" fill="none" stroke="var(--cyan)" stroke-width="2.5" stroke-linecap="round"/>
+        <path id="dp2" d="M10,130 L40,80 L70,140 L100,60 L130,140 L160,80 L190,130" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round"/>
+        <circle id="dp-dot" cx="10" cy="100" r="5" fill="var(--cyan)" opacity="0"/>
+      </svg>
+      <button class="btn btn-g" id="btn-draw" style="margin-top:.5rem;font-size:.78rem;">▶ Redibujar</button>
+    </div>
+
+    <!-- UFO motion path -->
+    <div class="anime-demo">
+      <p>Keyframe motion path</p>
+      <div style="position:relative;width:200px;height:200px;">
+        <svg viewBox="0 0 200 200" width="200" height="200" style="position:absolute;inset:0;">
+          <path d="M20,160 C50,60 100,140 130,60 C160,0 185,100 185,130" fill="none" stroke="rgba(0,210,255,.2)" stroke-width="2" stroke-dasharray="5 4"/>
+        </svg>
+        <div id="ufo" style="position:absolute;font-size:1.6rem;top:0;left:0;transform:translate(-50%,-50%);will-change:transform;">🛸</div>
+      </div>
+      <button class="btn btn-g" id="btn-ufo" style="margin-top:.5rem;font-size:.78rem;">▶ Lanzar</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §4  THREE.JS
+══════════════════════════════════════════════════════════ -->
+<section class="sec" id="s4">
+  <p class="lbl">04 · Three.js</p>
+  <h2>3D <span class="gc">WebGL</span> en el browser</h2>
+  <p class="desc">Escenas 3D interactivas, partículas, shaders y más — sin ningún plugin del browser.</p>
+
+  <canvas id="c3d"></canvas>
+  <p style="font-size:.76rem;color:var(--muted);margin-top:.75rem;">
+    <kbd style="background:var(--surf);border:1px solid var(--border);padding:.15rem .4rem;border-radius:4px;">Arrastrar</kbd> para rotar ·
+    <kbd style="background:var(--surf);border:1px solid var(--border);padding:.15rem .4rem;border-radius:4px;">Click</kbd> para explotar partículas
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §5  CSS MAGIC
+══════════════════════════════════════════════════════════ -->
+<section class="sec" id="s5" style="text-align:center;">
+  <p class="lbl">05 · CSS Magic</p>
+  <h2>Glassmorphism · <span class="gp">Neon</span> · Gradients</h2>
+  <p class="desc" style="margin:0 auto 2.5rem;">Sin JS: backdrop-filter, @property, CSS Houdini, neon glow, texto que se escribe solo.</p>
+
+  <!-- Floating glass cards over orbs -->
+  <div class="orb-wrap" style="margin-bottom:2.5rem;">
+    <div class="orb" style="width:340px;height:340px;background:var(--cyan);top:-80px;left:-60px;"></div>
+    <div class="orb" style="width:280px;height:280px;background:var(--purple);top:20px;right:20px;"></div>
+    <div class="orb" style="width:220px;height:220px;background:var(--pink);bottom:-40px;left:200px;"></div>
+
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:1.25rem;flex-wrap:wrap;">
+      <div class="glass-card" style="width:165px;animation-delay:0s;">
+        <div style="font-size:2rem;margin-bottom:.5rem;">💎</div>
+        <p style="font-weight:600;font-size:.88rem;">Glass</p>
+        <p style="color:var(--muted);font-size:.72rem;margin-top:.2rem;">backdrop-filter</p>
+      </div>
+      <div class="glass-card" style="width:165px;animation-delay:.5s;">
+        <div style="font-size:2rem;margin-bottom:.5rem;">🌈</div>
+        <p style="font-weight:600;font-size:.88rem;">Gradients</p>
+        <p style="color:var(--muted);font-size:.72rem;margin-top:.2rem;">mesh + @property</p>
+      </div>
+      <div class="glass-card" style="width:165px;animation-delay:1s;">
+        <div style="font-size:2rem;margin-bottom:.5rem;">⚡</div>
+        <p style="font-weight:600;font-size:.88rem;">Neon</p>
+        <p style="color:var(--muted);font-size:.72rem;margin-top:.2rem;">text-shadow layers</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Neon text -->
+  <div class="neon-txt">NEON GLOW</div>
+
+  <!-- Animated gradient border + typewriter -->
+  <div class="grad-border" style="margin-top:2rem;">
+    <div class="typewriter-txt">const slides = new Art(CSS.power(Infinity));</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §6  MERMAID
+══════════════════════════════════════════════════════════ -->
+<section class="sec" id="s6">
+  <p class="lbl">06 · Mermaid</p>
+  <h2>Diagramas <span class="gc">como código</span></h2>
+  <p class="desc">Flowcharts, sequence diagrams, ER diagrams — escritos en markdown, renderizados como SVG.</p>
+
+  <div class="mermaid-wrap" id="mermaid-wrap" style="margin-top:2rem;opacity:0;">
+    <div class="mermaid">
+%%{init:{'theme':'dark','themeVariables':{'primaryColor':'#1a1a2e','primaryBorderColor':'#00d2ff','lineColor':'#9333ea','primaryTextColor':'#f1f5f9','background':'#0d0d1a','edgeLabelBackground':'#0d0d1a','fontFamily':'Inter'}}}%%
+graph LR
+  U([🌐 Usuario]) -->|HTTP| GW{⚡ API Gateway}
+  GW -->|válido| A[🔐 Auth]
+  GW -->|inválido| E[❌ 401]
+  A -->|ok| S[🚀 Servicio]
+  S -->|query| DB[(💾 BD)]
+  S -->|hit| C[⚡ Cache]
+  DB --> S
+  C  --> S
+  S  -->|JSON| U
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §7  FINALE
+══════════════════════════════════════════════════════════ -->
+<section class="sec" id="s7" style="text-align:center;">
+  <p class="lbl">07 · Tu Toolkit</p>
+  <h2>Todo lo que <span class="gc">puedes usar</span></h2>
+  <p class="desc" style="margin:0 auto 2.5rem;">Estas son las herramientas instaladas y listas para construir tus slides.</p>
+
+  <div class="tg">
+    <div class="tc"><span class="tc-icon">⚡</span><div><p class="tc-name">GSAP</p><p class="tc-use">Timelines · ScrollTrigger · Stagger</p></div></div>
+    <div class="tc"><span class="tc-icon">🌐</span><div><p class="tc-name">Three.js</p><p class="tc-use">3D · WebGL · Particles · Shaders</p></div></div>
+    <div class="tc"><span class="tc-icon">🎭</span><div><p class="tc-name">Anime.js</p><p class="tc-use">SVG Morph · Motion Path · Draw</p></div></div>
+    <div class="tc"><span class="tc-icon">🎬</span><div><p class="tc-name">Lottie</p><p class="tc-use">After Effects · Figma → JSON</p></div></div>
+    <div class="tc"><span class="tc-icon">🎥</span><div><p class="tc-name">HyperFrames</p><p class="tc-use">HTML → Video · CI render</p></div></div>
+    <div class="tc"><span class="tc-icon">📊</span><div><p class="tc-name">Mermaid</p><p class="tc-use">Flow · Sequence · ER · C4</p></div></div>
+    <div class="tc"><span class="tc-icon">💎</span><div><p class="tc-name">CSS Magic</p><p class="tc-use">Glass · Neon · @property</p></div></div>
+    <div class="tc"><span class="tc-icon">🚀</span><div><p class="tc-name">GitHub Pages</p><p class="tc-use">Auto deploy en cada push</p></div></div>
+  </div>
+
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:3rem;">
+    <a href="../../slides/01-intro/index.html" class="btn btn-c">Empezar charla →</a>
+    <a href="../../index.html" class="btn btn-g">← Menú principal</a>
+  </div>
+</section>
+
+<!-- ── CDN scripts ──────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════════ */
+gsap.registerPlugin(ScrollTrigger);
+mermaid.initialize({ startOnLoad: true, theme: 'dark', securityLevel: 'loose' });
+
+/* ══════════════════════════════════════════════════════════
+   CURSOR
+══════════════════════════════════════════════════════════ */
+const cur = document.getElementById('cur');
+const cur2 = document.getElementById('cur2');
+window.addEventListener('mousemove', e => {
+  gsap.to(cur,  { x: e.clientX - 5,  y: e.clientY - 5,  duration: .06 });
+  gsap.to(cur2, { x: e.clientX - 19, y: e.clientY - 19, duration: .18 });
+});
+document.querySelectorAll('button,a,.tc,.glass-card,.sd,.ball').forEach(el => {
+  el.addEventListener('mouseenter', () => gsap.to(cur2, { scale: 2.2, borderColor: 'var(--pink)', duration: .25 }));
+  el.addEventListener('mouseleave', () => gsap.to(cur2, { scale: 1,   borderColor: 'var(--cyan)', duration: .25 }));
+});
+
+/* ══════════════════════════════════════════════════════════
+   PROGRESS BAR
+══════════════════════════════════════════════════════════ */
+gsap.set('#prog', { scaleX: 0 });
+gsap.to('#prog', {
+  scaleX: 1, ease: 'none',
+  scrollTrigger: { trigger: 'body', start: 'top top', end: 'bottom bottom', scrub: true },
+});
+
+/* ══════════════════════════════════════════════════════════
+   THREE.JS — GALAXY BACKGROUND (fixed canvas)
+══════════════════════════════════════════════════════════ */
+(function initGalaxy() {
+  const canvas = document.getElementById('bg-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.setSize(innerWidth, innerHeight);
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, .1, 300);
+  camera.position.set(0, 8, 55);
+
+  const count = 7000;
+  const pos   = new Float32Array(count * 3);
+  const col   = new Float32Array(count * 3);
+  const ca = new THREE.Color('#00d2ff'), cb = new THREE.Color('#9333ea');
+
+  for (let i = 0; i < count; i++) {
+    const branch = Math.floor(Math.random() * 3);
+    const r      = Math.pow(Math.random(), .5) * 65;
+    const spin   = r * 2.8;
+    const ang    = (branch / 3) * Math.PI * 2 + spin;
+    const sc     = (Math.random() - .5) * r * .45;
+    pos[i*3]   = Math.cos(ang) * r + sc;
+    pos[i*3+1] = (Math.random() - .5) * 3;
+    pos[i*3+2] = Math.sin(ang) * r + sc;
+    const c = ca.clone().lerp(cb, r / 65);
+    col[i*3] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({ size: .22, vertexColors: true, sizeAttenuation: true });
+  const galaxy = new THREE.Points(geo, mat);
+  scene.add(galaxy);
+
+  let mx = 0, my = 0;
+  window.addEventListener('mousemove', e => {
+    mx = (e.clientX / innerWidth  - .5) * 2;
+    my = (e.clientY / innerHeight - .5) * 2;
+  });
+
+  let t = 0;
+  (function loop() {
+    requestAnimationFrame(loop);
+    t += .003;
+    galaxy.rotation.y = t;
+    galaxy.rotation.x = my * .04;
+    camera.position.x += (mx * 6 - camera.position.x) * .015;
+    camera.position.y += (-my * 4 - camera.position.y) * .015;
+    camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
+  })();
+
+  window.addEventListener('resize', () => {
+    renderer.setSize(innerWidth, innerHeight);
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+  });
+})();
+
+/* ══════════════════════════════════════════════════════════
+   HERO — character scatter/reform
+══════════════════════════════════════════════════════════ */
+function heroAnim() {
+  const spans = document.querySelectorAll('#htitle span');
+  gsap.from(spans, {
+    x: () => gsap.utils.random(-400, 400),
+    y: () => gsap.utils.random(-300, 300),
+    rotation: () => gsap.utils.random(-180, 180),
+    scale: () => gsap.utils.random(.05, 2.5),
+    opacity: 0,
+    duration: 1.3,
+    ease: 'back.out(1.6)',
+    stagger: { amount: .7, from: 'random' },
+    clearProps: 'all',
+  });
+  gsap.from('#hsub',  { y: 28, opacity: 0, duration: .9, ease: 'power3.out', delay: .8 });
+  gsap.from('#hbtns', { y: 20, opacity: 0, duration: .7, ease: 'power3.out', delay: 1.1 });
+}
+heroAnim();
+document.getElementById('btn-hero-replay').addEventListener('click', heroAnim);
+
+// Bounce arrow
+gsap.to('#arrow-bounce', { y: 7, duration: .85, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+
+/* ══════════════════════════════════════════════════════════
+   §1  GSAP — BALLS CHOREOGRAPHY
+══════════════════════════════════════════════════════════ */
+function choreo() {
+  const tl = gsap.timeline();
+  gsap.set('.ball', { y: 0, x: 0, scale: 1, rotation: 0 });
+
+  tl.to('#b1', { y: -140, duration: .45, ease: 'power2.out' })
+    .to('#b1', { y: 0,    duration: .55, ease: 'bounce.out' })
+
+    .to('#b2', { y: -120, duration: .4,  ease: 'power3.out' }, '-=.25')
+    .to('#b2', { y: 0,    duration: .7,  ease: 'elastic.out(1,.5)' })
+
+    .to('#b3', { scale: 2.8, duration: .3, ease: 'back.out(3)' }, '-=.35')
+    .to('#b3', { scale: 1,   duration: .6, ease: 'elastic.out(1,.4)' })
+
+    .to('#b4', { rotation: 720, y: -90, duration: .6, ease: 'power2.inOut' }, '-=.5')
+    .to('#b4', { y: 0,  duration: .45, ease: 'bounce.out' })
+
+    .to('#b5', { x: -240, duration: .3, ease: 'power4.in' }, '-=.25')
+    .to('#b5', { x: 0,    duration: .9, ease: 'elastic.out(1,.3)' })
+
+    // Grand finale — wave stagger
+    .to('.ball', { y: -90, duration: .3, ease: 'power2.out', stagger: { each: .07, from: 'center' } })
+    .to('.ball', { y: 0,   duration: .5, ease: 'bounce.out', stagger: { each: .07, from: 'center' } });
+
+  return tl;
+}
+choreo();
+document.getElementById('btn-balls').addEventListener('click', choreo);
+
+/* ── Stagger grid ──────────────────────────────────────── */
+const sg = document.getElementById('sg');
+for (let i = 0; i < 80; i++) { const d = document.createElement('div'); d.className='sd'; sg.appendChild(d); }
+
+function waveGrid(from = 'random') {
+  gsap.to('.sd', {
+    y: -22, scale: 1.4, background: 'var(--cyan)',
+    duration: .3, ease: 'power2.out',
+    stagger: { each: .03, from, grid: [5, 16] },
+    yoyo: true, repeat: 1,
+    onComplete: () => gsap.set('.sd', { background: 'rgba(0,210,255,.2)' }),
+  });
+}
+sg.addEventListener('click', () => waveGrid('random'));
+sg.addEventListener('mouseenter', () => waveGrid('edges'));
+setTimeout(() => waveGrid('center'), 800);
+
+/* ── Text split ────────────────────────────────────────── */
+const splitEl = document.getElementById('split-demo');
+splitEl.addEventListener('click', () => {
+  const txt = '✨ Web Animation Rocks! ✨';
+  splitEl.innerHTML = '';
+  [...txt].forEach(c => {
+    const s = document.createElement('span');
+    s.textContent = c === ' ' ? '\u00a0' : c;
+    s.style.display = 'inline-block';
+    splitEl.appendChild(s);
+  });
+  gsap.from(splitEl.querySelectorAll('span'), {
+    y: () => gsap.utils.random(-120, 120),
+    x: () => gsap.utils.random(-100, 100),
+    opacity: 0,
+    rotation: () => gsap.utils.random(-60, 60),
+    scale: () => gsap.utils.random(.2, 2),
+    duration: .85,
+    ease: 'back.out(1.6)',
+    stagger: { amount: .5, from: 'random' },
+    clearProps: 'all',
+  });
+});
+
+/* ══════════════════════════════════════════════════════════
+   §2  SCROLLTRIGGER
+══════════════════════════════════════════════════════════ */
+
+// Word reveal
+document.querySelectorAll('.wd').forEach(w => {
+  gsap.to(w, {
+    opacity: 1,
+    scrollTrigger: { trigger: w, start: 'top 78%', end: 'top 60%', scrub: 1.2 },
+  });
+});
+
+// Counters
+document.querySelectorAll('[data-to]').forEach(el => {
+  const target = +el.dataset.to;
+  const sfx    = el.dataset.sfx || '';
+  const obj    = { v: 0 };
+  ScrollTrigger.create({
+    trigger: el,
+    start: 'top 80%',
+    once: true,
+    onEnter: () => gsap.to(obj, {
+      v: target, duration: 2.2, ease: 'power2.out',
+      onUpdate() {
+        const v = Math.round(obj.v);
+        el.textContent = v >= 1e6 ? (v/1e6).toFixed(1)+sfx : v+sfx;
+      },
+    }),
+  });
+});
+
+// Rocket scrub
+gsap.to('#rocket', {
+  x: () => document.getElementById('rocket-track').clientWidth - 64,
+  ease: 'none',
+  scrollTrigger: {
+    trigger: '#rocket-track', start: 'top center', end: 'bottom+=400 center', scrub: 2,
+  },
+});
+
+/* ══════════════════════════════════════════════════════════
+   §3  ANIME.JS
+══════════════════════════════════════════════════════════ */
+
+// Blob morphing
+const blobs = [
+  'M100 38 C142 38 162 62 162 100 C162 138 142 162 100 162 C58 162 38 138 38 100 C38 62 58 38 100 38 Z',
+  'M108 32 C150 28 172 56 168 100 C164 144 138 170 96 168 C54 166 28 140 32 100 C36 60 66 36 108 32 Z',
+  'M95 36 C140 28 168 58 166 100 C164 142 138 172 100 168 C62 164 28 136 30 96 C32 56 50 44 95 36 Z',
+  'M102 30 C148 28 174 58 170 102 C166 146 136 174 96 168 C56 162 24 134 28 94 C32 54 56 32 102 30 Z',
+  'M98 40 C136 34 164 60 166 98 C168 136 144 168 104 168 C64 168 32 142 32 104 C32 66 60 46 98 40 Z',
+];
+let bi = 0;
+function morphBlob() {
+  bi = (bi + 1) % blobs.length;
+  anime({ targets: '#blob-path', d: [{ value: blobs[bi] }], duration: 1800, easing: 'easeInOutSine', complete: morphBlob });
+}
+morphBlob();
+
+// Line draw
+function drawLines() {
+  const p1 = document.getElementById('dp1');
+  const p2 = document.getElementById('dp2');
+  const l1 = p1.getTotalLength();
+  const l2 = p2.getTotalLength();
+
+  p1.style.strokeDasharray  = l1;
+  p1.style.strokeDashoffset = l1;
+  p2.style.strokeDasharray  = l2;
+  p2.style.strokeDashoffset = l2;
+
+  const tl = anime.timeline({ easing: 'easeInOutSine' });
+  tl.add({ targets: '#dp1', strokeDashoffset: [l1, 0], duration: 1400 })
+    .add({ targets: '#dp2', strokeDashoffset: [l2, 0], duration: 1100 }, '-=700')
+    .add({ targets: '#dp-dot', opacity: [0, 1], scale: [0, 1], duration: 300 }, '-=300');
+}
+drawLines();
+document.getElementById('btn-draw').addEventListener('click', drawLines);
+
+// UFO motion path keyframes
+const ufoKF = [
+  { translateX: 20,  translateY: 155 },
+  { translateX: 50,  translateY: 55  },
+  { translateX: 90,  translateY: 130 },
+  { translateX: 130, translateY: 40  },
+  { translateX: 165, translateY: 90  },
+  { translateX: 185, translateY: 120 },
+];
+let ufoAnim = null;
+function launchUFO() {
+  if (ufoAnim) ufoAnim.pause();
+  ufoAnim = anime({
+    targets: '#ufo',
+    keyframes: ufoKF,
+    easing: 'easeInOutCubic',
+    duration: 2800,
+    loop: false,
+  });
+}
+document.getElementById('btn-ufo').addEventListener('click', launchUFO);
+setTimeout(launchUFO, 600);
+
+/* ══════════════════════════════════════════════════════════
+   §4  THREE.JS — INTERACTIVE 3D CANVAS
+══════════════════════════════════════════════════════════ */
+(function init3d() {
+  const canvas = document.getElementById('c3d');
+  const w = () => canvas.clientWidth;
+  const h = () => canvas.clientHeight;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(w(), h());
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, w() / h(), .1, 100);
+  camera.position.set(0, 0, 6);
+
+  // Torus knot
+  const kGeo = new THREE.TorusKnotGeometry(1.6, .48, 220, 36);
+  const kMat = new THREE.MeshPhysicalMaterial({ color: 0x00d2ff, emissive: 0x001133, metalness: .25, roughness: .08 });
+  const knot = new THREE.Mesh(kGeo, kMat);
+  scene.add(knot);
+
+  // Wireframe halo
+  const wMat = new THREE.MeshBasicMaterial({ color: 0x9333ea, wireframe: true, transparent: true, opacity: .12 });
+  const wire = new THREE.Mesh(kGeo, wMat);
+  scene.add(wire);
+
+  // Ambient particles
+  const pGeo = new THREE.BufferGeometry();
+  const pBuf = new Float32Array(2000 * 3);
+  for (let i = 0; i < 2000; i++) {
+    pBuf[i*3]   = (Math.random() - .5) * 14;
+    pBuf[i*3+1] = (Math.random() - .5) * 14;
+    pBuf[i*3+2] = (Math.random() - .5) * 14;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pBuf, 3));
+  scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0x4488ff, size: .04 })));
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0x111122, 1));
+  const l1 = new THREE.PointLight(0x00d2ff, 100, 20); l1.position.set( 5, 5,  5); scene.add(l1);
+  const l2 = new THREE.PointLight(0x9333ea, 100, 20); l2.position.set(-5,-3,  5); scene.add(l2);
+  const l3 = new THREE.PointLight(0xec4899,  70, 20); l3.position.set( 0, 5, -5); scene.add(l3);
+
+  // Drag rotation
+  let drag = false, px = 0, py = 0, vx = 0, vy = 0;
+  canvas.addEventListener('mousedown',  e => { drag = true;  px = e.clientX; py = e.clientY; });
+  window.addEventListener('mouseup',   () => { drag = false; });
+  window.addEventListener('mousemove', e => {
+    if (!drag) return;
+    vx += (e.clientX - px) * .012; vy += (e.clientY - py) * .012;
+    px = e.clientX; py = e.clientY;
+  });
+
+  // Particle burst on click
+  let burst = null;
+  canvas.addEventListener('click', () => {
+    if (burst) scene.remove(burst);
+    const bg = new THREE.BufferGeometry();
+    const bp = new Float32Array(300 * 3);
+    const bv = [];
+    for (let i = 0; i < 300; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi   = Math.acos(2 * Math.random() - 1);
+      const r     = Math.random() * .3;
+      bp[i*3]   = Math.sin(phi)*Math.cos(theta)*r;
+      bp[i*3+1] = Math.sin(phi)*Math.sin(theta)*r;
+      bp[i*3+2] = Math.cos(phi)*r;
+      const speed = Math.random() * .08 + .02;
+      bv.push({ x: Math.sin(phi)*Math.cos(theta)*speed, y: Math.sin(phi)*Math.sin(theta)*speed, z: Math.cos(phi)*speed });
+    }
+    bg.setAttribute('position', new THREE.BufferAttribute(bp, 3));
+    const bm = new THREE.PointsMaterial({ color: 0xec4899, size: .07, transparent: true, opacity: 1 });
+    burst = new THREE.Points(bg, bm);
+    scene.add(burst);
+    let frame = 0;
+    (function expandBurst() {
+      if (frame++ > 70) { scene.remove(burst); return; }
+      const a = bg.attributes.position;
+      for (let i = 0; i < 300; i++) { a.array[i*3]+=bv[i].x; a.array[i*3+1]+=bv[i].y; a.array[i*3+2]+=bv[i].z; bv[i].y-=.001; }
+      a.needsUpdate = true;
+      bm.opacity = 1 - frame / 70;
+      requestAnimationFrame(expandBurst);
+    })();
+  });
+
+  // Color cycling
+  let hue = 0;
+  (function loop3d() {
+    requestAnimationFrame(loop3d);
+    hue += .25;
+    const h = (hue % 360) / 360;
+    kMat.color.setHSL(h, .85, .6);
+    l1.color.setHSL(h, 1, .5);
+    l2.color.setHSL((h + .33) % 1, 1, .5);
+
+    knot.rotation.x += .004 + vy * .06;
+    knot.rotation.y += .009 + vx * .06;
+    wire.rotation.x  = knot.rotation.x;
+    wire.rotation.y  = knot.rotation.y;
+    vx *= .92; vy *= .92;
+    renderer.render(scene, camera);
+  })();
+
+  // Resize
+  new ResizeObserver(() => {
+    renderer.setSize(w(), h()); camera.aspect = w()/h(); camera.updateProjectionMatrix();
+  }).observe(canvas);
+})();
+
+/* ══════════════════════════════════════════════════════════
+   §6  MERMAID — fade in after render
+══════════════════════════════════════════════════════════ */
+ScrollTrigger.create({
+  trigger: '#mermaid-wrap',
+  start: 'top 75%',
+  once: true,
+  onEnter: () => gsap.to('#mermaid-wrap', { opacity: 1, y: 0, duration: .9, ease: 'power3.out' }),
+});
+gsap.set('#mermaid-wrap', { y: 30 });
+
+/* ══════════════════════════════════════════════════════════
+   GENERIC SCROLL REVEALS (all sections)
+══════════════════════════════════════════════════════════ */
+['#s1','#s2','#s3','#s4','#s5','#s6','#s7'].forEach(id => {
+  const el = document.querySelector(id);
+  if (!el) return;
+  const kids = [...el.children].filter(c => !c.matches('.balls-wrap,.sg,#split-demo'));
+  gsap.from(kids, {
+    y: 36, opacity: 0, duration: .75, ease: 'power3.out', stagger: .1,
+    scrollTrigger: { trigger: id, start: 'top 78%', toggleActions: 'play none none none' },
+  });
+});
+
+/* ══════════════════════════════════════════════════════════
+   NAV DOTS
+══════════════════════════════════════════════════════════ */
+const secIds = ['#s0','#s1','#s2','#s3','#s4','#s5','#s6','#s7'];
+secIds.forEach((id, i) => {
+  ScrollTrigger.create({
+    trigger: id, start: 'top center', end: 'bottom center',
+    onToggle: self => {
+      if (!self.isActive) return;
+      document.querySelectorAll('.nd').forEach(d => d.classList.remove('on'));
+      const d = document.querySelector(`.nd[data-i="${i}"]`);
+      if (d) d.classList.add('on');
+    },
+  });
+});
+document.querySelectorAll('.nd').forEach(d => {
+  d.addEventListener('click', () => {
+    document.querySelector(secIds[+d.dataset.i])?.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+</script>
+</body>
+</html>
