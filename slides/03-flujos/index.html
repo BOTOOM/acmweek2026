@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>03 · Flujos — ACM Week 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/css/base.css" />
+  <style>
+    .flow-section { display: flex; flex-direction: column; gap: 2rem; }
+
+    /* Animated flow diagram */
+    .flow-diagram {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .flow-node {
+      background: var(--color-surface);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1rem 1.5rem;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .flow-node.active {
+      border-color: var(--color-accent);
+      background: rgba(88,166,255,0.08);
+    }
+
+    .flow-node .node-icon { font-size: 1.75rem; }
+    .flow-node .node-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-top: 0.3rem;
+    }
+
+    .flow-arrow {
+      font-size: 1.5rem;
+      color: var(--color-accent);
+      padding: 0 0.5rem;
+      opacity: 0;
+    }
+
+    /* Mermaid diagram container */
+    .mermaid-container {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .mermaid-container .mermaid svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* HyperFrames video placeholder */
+    .video-placeholder {
+      background: var(--color-surface);
+      border: 1px dashed var(--color-border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      text-align: center;
+    }
+
+    .video-placeholder code {
+      font-size: 0.8rem;
+      display: block;
+      text-align: left;
+      white-space: pre;
+    }
+
+    /* Play button */
+    .play-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.4rem;
+      border: none;
+      color: #0d1117;
+      box-shadow: 0 4px 20px rgba(88,166,255,0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-bar"></div>
+
+  <div class="slide-wrapper">
+
+    <header class="slide-header animate-in">
+      <a href="../../index.html" class="btn" style="font-size:0.8rem;">← Menú</a>
+      <span class="slide-number">03 / 03</span>
+      <span class="slide-tag">Flujos &amp; Diagramas</span>
+    </header>
+
+    <main class="slide-content">
+
+      <div class="animate-in">
+        <h2>Flujos con <span class="text-gradient">Animaciones</span></h2>
+        <p style="margin-top:0.5rem;">
+          Haz clic en "Animar" para ver el flujo paso a paso con GSAP.
+        </p>
+      </div>
+
+      <!-- Animated step-by-step flow -->
+      <div class="animate-in">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+          <p style="font-size:0.85rem;font-weight:600;color:var(--color-text);">
+            Flujo animado paso a paso
+          </p>
+          <button class="btn btn-primary" id="btn-animate" style="font-size:0.85rem;">
+            ▶ Animar
+          </button>
+        </div>
+
+        <div class="flow-diagram" id="flow-diagram">
+          <div class="flow-node" id="node-1">
+            <p class="node-icon">📥</p>
+            <p class="node-label">Input</p>
+          </div>
+          <div class="flow-arrow" id="arrow-1">→</div>
+          <div class="flow-node" id="node-2">
+            <p class="node-icon">⚙️</p>
+            <p class="node-label">Proceso</p>
+          </div>
+          <div class="flow-arrow" id="arrow-2">→</div>
+          <div class="flow-node" id="node-3">
+            <p class="node-icon">🔍</p>
+            <p class="node-label">Validación</p>
+          </div>
+          <div class="flow-arrow" id="arrow-3">→</div>
+          <div class="flow-node" id="node-4">
+            <p class="node-icon">✅</p>
+            <p class="node-label">Output</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mermaid diagram -->
+      <div class="mermaid-container animate-in">
+        <p style="font-size:0.8rem;font-weight:600;color:var(--color-text-muted);margin-bottom:0.75rem;">
+          Diagrama Mermaid (reemplaza con tu diagrama)
+        </p>
+        <div class="mermaid">
+graph LR
+    A[Cliente] -->|Request| B(API Gateway)
+    B --> C{Autenticado?}
+    C -->|Sí| D[Servicio]
+    C -->|No| E[401 Error]
+    D --> F[(Base de datos)]
+    F --> D
+    D -->|Response| A
+        </div>
+      </div>
+
+      <!-- HyperFrames video embed placeholder -->
+      <div class="video-placeholder animate-in">
+        <span style="font-size:2rem;">🎥</span>
+        <p style="font-size:0.95rem;">
+          Incrusta aquí un video generado con <strong>HyperFrames</strong>.
+        </p>
+        <p style="font-size:0.85rem;">
+          Crea tu composición HTML → renderiza → sube el video y reemplaza:
+        </p>
+        <code>&lt;video src="./mi-flujo.mp4" autoplay loop muted playsinline&gt;&lt;/video&gt;</code>
+      </div>
+
+    </main>
+
+    <nav class="slide-nav animate-in">
+      <a href="../02-animaciones/index.html" class="btn">← Anterior</a>
+      <span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--color-text-muted);">
+        Fin de la presentación
+      </span>
+      <a href="../../index.html" class="btn btn-primary">⌂ Menú</a>
+    </nav>
+
+  </div>
+
+  <!-- GSAP -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <!-- Mermaid -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script src="../../assets/js/nav.js"></script>
+  <script>
+    // Init Mermaid with dark theme
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        background: '#161b22',
+        primaryColor: '#21262d',
+        primaryBorderColor: '#58a6ff',
+        primaryTextColor: '#e6edf3',
+        lineColor: '#58a6ff',
+        secondaryColor: '#161b22',
+        tertiaryColor: '#0d1117',
+      },
+    });
+
+    initSlide({
+      current: 3,
+      total: 3,
+      prev: '../02-animaciones/index.html',
+      next: '../../index.html',
+    });
+
+    // ── Step-by-step flow animation ───────────────────────────────
+    function animateFlow() {
+      const tl = gsap.timeline();
+
+      // Reset all nodes and arrows first
+      gsap.set(['#node-1','#node-2','#node-3','#node-4'], {
+        opacity: 0.3, scale: 0.95, borderColor: 'var(--color-border)',
+      });
+      gsap.set(['.flow-arrow'], { opacity: 0 });
+
+      const nodes = ['#node-1', '#node-2', '#node-3', '#node-4'];
+      const arrows = ['#arrow-1', '#arrow-2', '#arrow-3'];
+
+      nodes.forEach((node, i) => {
+        tl.to(node, {
+          opacity: 1,
+          scale: 1,
+          borderColor: 'var(--color-accent)',
+          duration: 0.4,
+          ease: 'back.out(1.5)',
+        }, i * 0.5);
+
+        if (arrows[i]) {
+          tl.to(arrows[i], {
+            opacity: 1,
+            x: 0,
+            duration: 0.25,
+            ease: 'power2.out',
+          }, i * 0.5 + 0.3);
+        }
+
+        // Deactivate previous node
+        if (i > 0) {
+          tl.to(nodes[i - 1], {
+            borderColor: 'var(--color-border)',
+            scale: 0.97,
+            duration: 0.3,
+          }, i * 0.5);
+        }
+      });
+
+      return tl;
+    }
+
+    document.getElementById('btn-animate').addEventListener('click', animateFlow);
+  </script>
+</body>
+</html>

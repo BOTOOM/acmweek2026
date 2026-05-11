@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>01 · Introducción — ACM Week 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/css/base.css" />
+  <style>
+    .intro-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    @media (max-width: 700px) {
+      .intro-grid { grid-template-columns: 1fr; }
+    }
+
+    .avatar-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      box-shadow: 0 0 0 4px var(--color-bg), 0 0 0 6px var(--color-accent);
+    }
+
+    .speaker-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .speaker-role {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      text-align: center;
+    }
+
+    .talk-title {
+      margin-bottom: 0.5rem;
+    }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    .bullet-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 1rem;
+      color: var(--color-text-muted);
+    }
+
+    .bullet-list li::before {
+      content: '▸';
+      color: var(--color-accent);
+      flex-shrink: 0;
+      margin-top: 0.15rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-bar"></div>
+
+  <div class="slide-wrapper">
+
+    <!-- Header -->
+    <header class="slide-header animate-in">
+      <a href="../../index.html" class="btn" style="font-size:0.8rem;">← Menú</a>
+      <span class="slide-number">01 / 03</span>
+      <span class="slide-tag">Introducción</span>
+    </header>
+
+    <!-- Content -->
+    <main class="slide-content">
+
+      <div class="intro-grid">
+
+        <div>
+          <h1 class="talk-title animate-in">
+            <span class="text-gradient">Título de tu Charla</span>
+          </h1>
+          <p class="animate-in" style="font-size:1.1rem;margin-bottom:0.5rem;">
+            Subtítulo o descripción corta que explique el valor de la presentación.
+          </p>
+
+          <ul class="bullet-list">
+            <li class="animate-in">¿Qué vamos a ver hoy?</li>
+            <li class="animate-in">Por qué este tema importa</li>
+            <li class="animate-in">Lo que te llevarás al salir</li>
+          </ul>
+        </div>
+
+        <div class="avatar-area animate-in">
+          <div class="avatar">🧑‍💻</div>
+          <p class="speaker-name">Tu Nombre</p>
+          <p class="speaker-role">Rol · Organización</p>
+          <div class="flex gap-1" style="margin-top:0.5rem;">
+            <a href="#" class="btn" style="font-size:0.8rem;">GitHub</a>
+            <a href="#" class="btn" style="font-size:0.8rem;">Twitter / X</a>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- Navigation -->
+    <nav class="slide-nav animate-in">
+      <a href="../../index.html" class="btn">⌂ Menú</a>
+      <span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--color-text-muted);">
+        ← → o swipe para navegar
+      </span>
+      <a href="../02-animaciones/index.html" class="btn btn-primary">Siguiente →</a>
+    </nav>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="../../assets/js/nav.js"></script>
+  <script>
+    initSlide({
+      current: 1,
+      total: 3,
+      prev: '../../index.html',
+      next: '../02-animaciones/index.html',
+    });
+
+    // Animación del avatar al cargar
+    gsap.from('.avatar', {
+      scale: 0.5,
+      opacity: 0,
+      duration: 0.8,
+      ease: 'back.out(1.7)',
+      delay: 0.4,
+    });
+
+    // Pulso continuo en el avatar
+    gsap.to('.avatar', {
+      boxShadow: '0 0 0 4px var(--color-bg), 0 0 0 10px rgba(88,166,255,0.3)',
+      duration: 1.5,
+      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true,
+      delay: 1.2,
+    });
+  </script>
+</body>
+</html>
