@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La IA no viene por tu trabajo — Edwar Díaz | ACM Week 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050510;--surface:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);
+  --purple:#7c3aed;--pl:#a855f7;--cyan:#06b6d4;--green:#10b981;
+  --pink:#ec4899;--orange:#f97316;--red:#ef4444;--yellow:#eab308;
+  --text:#f0f0f5;--muted:#8b8ba7;
+  --mono:'Space Mono',monospace;--sans:'Space Grotesk',sans-serif;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);}
+
+/* === DECK === */
+#deck{position:fixed;inset:0;}
+.slide{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:64px 80px;
+  overflow:hidden;visibility:hidden;
+}
+.slide.active{visibility:visible;}
+
+/* Layout overrides */
+#s1{display:grid;grid-template-columns:380px 1fr;gap:56px;align-items:center;padding:64px 72px;}
+#s9{display:grid;grid-template-columns:1fr 80px 1fr;gap:24px;align-items:center;padding:64px 64px;}
+#s11{flex-direction:row;gap:0;align-items:center;padding:64px 60px;}
+#s17{display:grid;grid-template-columns:1fr 260px;gap:48px;align-items:center;padding:64px 72px;}
+
+/* === UI CHROME === */
+#progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--cyan));z-index:100;transition:width .35s;}
+#counter{position:fixed;top:18px;right:24px;font-family:var(--mono);font-size:12px;color:var(--muted);z-index:100;letter-spacing:.1em;}
+#back{position:fixed;top:18px;left:24px;z-index:100;}
+#back a{color:var(--muted);text-decoration:none;font-family:var(--mono);font-size:12px;transition:color .2s;}
+#back a:hover{color:var(--text);}
+#dots{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:100;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted);cursor:pointer;transition:all .3s;}
+.dot.on{background:var(--purple);width:20px;border-radius:3px;}
+
+/* === TYPOGRAPHY === */
+.mega{font-size:clamp(2.8rem,7vw,6.5rem);font-weight:700;line-height:1.05;}
+.huge{font-size:clamp(2rem,4.5vw,4rem);font-weight:700;line-height:1.1;}
+.big{font-size:clamp(1.4rem,2.5vw,2.4rem);font-weight:600;line-height:1.25;}
+.body{font-size:clamp(.95rem,1.4vw,1.25rem);line-height:1.7;}
+.grad{background:linear-gradient(135deg,var(--pl),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hi{color:var(--cyan);}.gr{color:var(--green);}.re{color:var(--red);}.or{color:var(--orange);}
+
+/* === BADGE === */
+.badge{
+  display:inline-flex;align-items:center;gap:8px;padding:5px 14px;
+  border-radius:100px;font-family:var(--mono);font-size:11px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  background:rgba(124,58,237,.12);border:1px solid var(--purple);color:var(--pl);
+  margin-bottom:20px;
+}
+
+/* === GLASS CARD === */
+.gc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 26px;}
+
+/* === SLIDE 0 — PORTADA === */
+.hero-grid{display:grid;grid-template-columns:1fr 230px;gap:48px;align-items:center;width:100%;max-width:1200px;}
+.speaker-card{display:flex;flex-direction:column;align-items:center;gap:14px;}
+.avatar{width:110px;height:110px;border-radius:50%;border:3px solid var(--purple);object-fit:cover;box-shadow:0 0 28px rgba(124,58,237,.5);}
+.sp-name{font-size:1rem;font-weight:700;text-align:center;}
+.sp-role{font-size:.75rem;color:var(--muted);font-family:var(--mono);text-align:center;line-height:1.5;}
+.ev-badge{background:rgba(124,58,237,.15);border:1px solid var(--purple);border-radius:100px;padding:3px 12px;font-size:.7rem;font-family:var(--mono);color:var(--pl);}
+.soc-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:4px;}
+.soc{padding:3px 9px;border-radius:100px;background:rgba(255,255,255,.05);border:1px solid var(--border);font-size:.65rem;font-family:var(--mono);color:var(--muted);text-decoration:none;transition:all .2s;}
+.soc:hover{color:var(--text);border-color:var(--purple);}
+
+/* === SLIDE 1 — CÓDIGO LLUVIA === */
+#code-canvas{border-radius:14px;border:1px solid var(--border);display:block;width:100%;height:340px;}
+.checklist{display:flex;flex-direction:column;gap:18px;}
+.ci{display:flex;align-items:center;gap:14px;font-size:1.1rem;opacity:0;}
+.ci-icon{width:26px;height:26px;border-radius:50%;background:rgba(16,185,129,.12);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:12px;flex-shrink:0;}
+
+/* === SLIDE 5 — TIMELINE === */
+.tl{display:flex;align-items:flex-start;gap:0;width:100%;}
+.era{flex:1;padding:20px 16px;border-radius:12px;border:1px solid var(--border);opacity:0;}
+.era-n{font-family:var(--mono);font-size:.65rem;color:var(--muted);margin-bottom:6px;}
+.era-t{font-size:.9rem;font-weight:700;margin-bottom:10px;}
+.era-tag{font-family:var(--mono);font-size:.65rem;color:var(--muted);background:rgba(255,255,255,.03);padding:2px 7px;border-radius:4px;display:block;margin-bottom:3px;}
+.era-arr{display:flex;align-items:center;padding:0 6px;padding-top:30px;}
+.e1{border-color:rgba(124,58,237,.4);}.e1 .era-t{color:var(--pl);}
+.e2{border-color:rgba(6,182,212,.4);}.e2 .era-t{color:var(--cyan);}
+.e3{border-color:rgba(16,185,129,.4);}.e3 .era-t{color:var(--green);}
+.e4{border-color:rgba(249,115,22,.5);background:rgba(249,115,22,.04);animation:ep 2.5s ease-in-out infinite;}.e4 .era-t{color:var(--orange);}
+@keyframes ep{0%,100%{box-shadow:0 0 0 0 rgba(249,115,22,0);}50%{box-shadow:0 0 20px 4px rgba(249,115,22,.2);}}
+
+/* === SLIDE 8 — FUNDAMENTOS === */
+.fg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:24px 0;width:100%;}
+.fi{padding:12px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--border);font-family:var(--mono);font-size:.78rem;opacity:0;display:flex;align-items:center;gap:9px;}
+
+/* === SLIDE 9 — JUNIOR vs SENIOR === */
+.vs-card{padding:28px 24px;border-radius:16px;border:1px solid var(--border);}
+.vs-card.jr{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04);}
+.vs-card.sr{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.04);}
+.vs-who{font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-bottom:10px;}
+.vs-em{font-size:2.6rem;margin-bottom:10px;}
+.vs-res{font-size:1.6rem;font-weight:700;margin:14px 0;}
+.jr .vs-res{color:var(--red);}.sr .vs-res{color:var(--green);}
+.vs-pill{margin-top:14px;padding:8px 12px;border-radius:8px;font-family:var(--mono);font-size:.7rem;}
+.jr .vs-pill{background:rgba(239,68,68,.1);color:var(--red);}
+.sr .vs-pill{background:rgba(16,185,129,.1);color:var(--green);}
+.vs-sep{font-family:var(--mono);font-size:1.8rem;font-weight:900;color:var(--muted);text-align:center;}
+
+/* === SLIDE 10 — EL VALOR === */
+#s10{text-align:center;}
+.sw{position:relative;display:inline-block;}
+.sl{position:absolute;top:50%;left:-3%;width:0;height:4px;background:var(--red);transform:rotate(-2deg);}
+
+/* === SLIDE 11 — CODER → ORCHESTRATOR === */
+.evo-flow{display:flex;flex-direction:column;align-items:center;min-width:280px;}
+.ev-step{padding:14px 28px;border-radius:12px;border:1px solid var(--border);font-size:1rem;font-weight:600;opacity:0;min-width:260px;text-align:center;}
+.ev1{border-color:var(--muted);color:var(--muted);}
+.ev2{border-color:var(--cyan);color:var(--cyan);}
+.ev3{border-color:var(--green);color:var(--green);}
+.ev4{border-color:var(--orange);color:var(--orange);background:rgba(249,115,22,.08);font-size:1.1rem;animation:go 2.5s ease-in-out infinite;}
+@keyframes go{0%,100%{box-shadow:0 0 0 0 rgba(249,115,22,0);}50%{box-shadow:0 0 20px 4px rgba(249,115,22,.3);}}
+.ev-arr{height:30px;display:flex;align-items:center;justify-content:center;}
+.evo-desc{flex:1;padding-left:52px;display:flex;flex-direction:column;gap:14px;}
+.ed-item{padding:16px 18px;border-radius:12px;background:var(--surface);border:1px solid var(--border);opacity:0;}
+.ed-t{font-weight:700;font-size:.85rem;color:var(--pl);margin-bottom:6px;}
+.ed-b{font-size:.82rem;color:var(--muted);line-height:1.5;}
+
+/* === SLIDE 12 — ANTES vs AHORA === */
+.av-col{padding:22px;border-radius:14px;border:1px solid var(--border);}
+.av-a{border-color:rgba(107,114,128,.3);background:rgba(107,114,128,.03);}
+.av-b{border-color:rgba(124,58,237,.3);background:rgba(124,58,237,.04);}
+.av-ct{font-family:var(--mono);font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.15em;margin-bottom:16px;}
+.av-a .av-ct{color:var(--muted);}.av-b .av-ct{color:var(--pl);}
+.av-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:.9rem;opacity:0;}
+.av-item:last-child{border-bottom:none;}
+.av-a .av-item{color:var(--muted);}
+
+/* === SLIDE 13 — VIBE CODING === */
+#s13{text-align:center;}
+.vt{font-size:clamp(2.5rem,7vw,5.5rem);font-weight:900;color:var(--muted);display:inline-block;position:relative;}
+.vx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(3rem,8vw,7rem);color:var(--red);opacity:0;}
+
+/* === SLIDE 14 — SDD === */
+.sdd-g{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:28px;width:100%;}
+.sdd-c{padding:20px 22px;border-radius:14px;border:1px solid var(--border);background:var(--surface);opacity:0;}
+.sdd-ci{font-size:1.8rem;margin-bottom:10px;}
+.sdd-ct{font-weight:700;font-size:.9rem;margin-bottom:7px;}
+.sdd-cb{font-size:.82rem;color:var(--muted);line-height:1.5;}
+
+/* === SLIDE 15 — SPEC→PLAN→CODE === */
+.flow-wrap{display:flex;align-items:center;width:100%;max-width:1100px;}
+.fb{flex:1;padding:24px 20px;border-radius:16px;border:2px solid;text-align:center;opacity:0;}
+.fb-spec{border-color:var(--purple);background:rgba(124,58,237,.07);}
+.fb-plan{border-color:var(--cyan);background:rgba(6,182,212,.07);}
+.fb-code{border-color:var(--green);background:rgba(16,185,129,.07);}
+.fb-ico{font-size:2.2rem;margin-bottom:10px;}
+.fb-t{font-size:1.3rem;font-weight:800;margin-bottom:10px;}
+.fb-spec .fb-t{color:var(--pl);}.fb-plan .fb-t{color:var(--cyan);}.fb-code .fb-t{color:var(--green);}
+.fb-ul{list-style:none;text-align:left;}
+.fb-ul li{font-size:.75rem;color:var(--muted);padding:3px 0;font-family:var(--mono);}
+.fb-ul li::before{content:'→ ';color:var(--muted);}
+.fa-wrap{padding:0 10px;display:flex;align-items:center;}
+
+/* === SLIDE 16 — TOOLS === */
+.tg{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:28px;width:100%;}
+.tc{padding:18px 14px;border-radius:14px;border:1px solid var(--border);background:var(--surface);text-align:center;opacity:0;transition:all .3s;}
+.tc:hover{border-color:var(--purple);transform:translateY(-4px);}
+.tc-e{font-size:1.8rem;margin-bottom:8px;}
+.tc-n{font-weight:700;font-size:.85rem;margin-bottom:4px;}
+.tc-d{font-size:.72rem;color:var(--muted);}
+
+/* === SLIDE 17 — CLOSING === */
+.cq{font-size:clamp(1rem,1.7vw,1.4rem);line-height:1.65;margin-bottom:20px;opacity:0;}
+.evo-badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:28px;opacity:0;}
+.eb{padding:7px 14px;border-radius:100px;font-family:var(--mono);font-size:.75rem;font-weight:700;}
+.eb1{background:rgba(107,114,128,.2);color:var(--muted);}
+.eb2{background:rgba(6,182,212,.12);color:var(--cyan);}
+.eb3{background:rgba(16,185,129,.12);color:var(--green);}
+.eb4{background:rgba(249,115,22,.12);color:var(--orange);border:1px solid var(--orange);}
+.sep{color:var(--muted);font-size:1.1rem;}
+.cc{padding:22px 18px;border-radius:16px;background:var(--surface);border:1px solid var(--border);text-align:center;opacity:0;}
+.cc-av{width:70px;height:70px;border-radius:50%;border:2px solid var(--purple);margin:0 auto 10px;object-fit:cover;}
+.cc-n{font-weight:700;font-size:.95rem;}
+.cc-h{font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-top:3px;}
+
+/* background particles */
+#pbg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.35;}
+</style>
+</head>
+<body>
+<canvas id="pbg"></canvas>
+<div id="progress"></div>
+<div id="counter">1 / 18</div>
+<div id="back"><a href="../../index.html">← Inicio</a></div>
+<div id="dots"></div>
+
+<div id="deck">
+
+<!-- ═══ S0 — PORTADA ═══ -->
+<section class="slide active" id="s0">
+  <div class="hero-grid">
+    <div>
+      <div style="opacity:0" id="s0ev"><span class="badge" style="margin:0">🎓 ACM Week 2026 · Colombia</span></div>
+      <h1 class="mega" style="margin-top:16px">
+        <span id="t1" style="display:block">La IA no viene</span>
+        <span id="t2" style="display:block">por tu trabajo…</span>
+      </h1>
+      <p id="s0sub" style="font-size:clamp(1.1rem,2vw,1.5rem);color:var(--muted);font-style:italic;margin-top:14px;opacity:0">
+        pero sí viene por tu forma de trabajar.
+      </p>
+      <div id="s0tags" style="display:flex;gap:12px;margin-top:36px;flex-wrap:wrap;opacity:0">
+        <span style="font-family:var(--mono);font-size:.75rem;color:var(--muted);padding:5px 11px;border-radius:6px;background:var(--surface);border:1px solid var(--border)">#IA</span>
+        <span style="font-family:var(--mono);font-size:.75rem;color:var(--muted);padding:5px 11px;border-radius:6px;background:var(--surface);border:1px solid var(--border)">#SoftwareEngineering</span>
+        <span style="font-family:var(--mono);font-size:.75rem;color:var(--muted);padding:5px 11px;border-radius:6px;background:var(--surface);border:1px solid var(--border)">#SpecDrivenDev</span>
+        <span style="font-family:var(--mono);font-size:.75rem;color:var(--muted);padding:5px 11px;border-radius:6px;background:var(--surface);border:1px solid var(--border)">#FutureOfWork</span>
+      </div>
+      <div id="s0hint" style="margin-top:36px;opacity:0;font-family:var(--mono);font-size:.78rem;color:var(--muted)">
+        → presiona Espacio o ▶ para comenzar
+      </div>
+    </div>
+    <div class="speaker-card" id="s0sp" style="opacity:0">
+      <img class="avatar" src="https://avatars.githubusercontent.com/u/28914781?v=4" alt="Edwar Díaz"
+        onerror="this.outerHTML='<div class=\'avatar\' style=\'background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:2rem\'>ED</div>'">
+      <div class="sp-name">Edwar Díaz</div>
+      <div class="sp-role">Full Stack &amp; DevOps Engineer<br>AWS Solutions Architect · ACM Speaker</div>
+      <div class="ev-badge">edwardiaz.dev</div>
+      <div class="soc-row">
+        <a href="https://github.com/BOTOOM" target="_blank" class="soc">GitHub</a>
+        <a href="https://linkedin.com/in/edwar-diaz" target="_blank" class="soc">LinkedIn</a>
+        <a href="https://botoom.hashnode.dev" target="_blank" class="soc">Blog</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S1 — EL PASADO ═══ -->
+<section class="slide" id="s1">
+  <canvas id="code-canvas"></canvas>
+  <div class="checklist">
+    <div class="badge">ACT 1 — El Pasado</div>
+    <p class="big" style="margin-bottom:16px">Hace unos años, ser buen desarrollador significaba…</p>
+    <div class="ci" id="ci1"><div class="ci-icon">✓</div><span>Memorizar sintaxis de memoria</span></div>
+    <div class="ci" id="ci2"><div class="ci-icon">✓</div><span>Saber frameworks al dedillo</span></div>
+    <div class="ci" id="ci3"><div class="ci-icon">✓</div><span>Escribir cientos de líneas rápido</span></div>
+    <div class="ci" id="ci4"><div class="ci-icon">✓</div><span>Resolver LeetCode de madrugada</span></div>
+    <p id="s1then" style="font-size:1.2rem;color:var(--muted);font-style:italic;margin-top:24px;opacity:0">
+      Hoy… una IA puede escribir esas mismas cientos de líneas en…
+    </p>
+    <p id="s1ai" style="font-size:1.8rem;font-weight:700;color:var(--cyan);opacity:0">segundos. ⚡</p>
+  </div>
+</section>
+
+<!-- ═══ S2 — LA PREGUNTA ═══ -->
+<section class="slide" id="s2">
+  <div style="font-size:clamp(7rem,18vw,14rem);font-weight:900;color:var(--red);opacity:.1;position:absolute;font-family:var(--mono);user-select:none">?</div>
+  <div style="position:relative;z-index:1;text-align:center">
+    <div class="badge" id="s2b" style="opacity:0;justify-content:center">😰 La Pregunta del Millón</div>
+    <h2 class="huge" id="s2q" style="max-width:800px;margin:0 auto;opacity:0">
+      ¿La IA viene por<br><span class="re">nuestro trabajo?</span>
+    </h2>
+    <p id="s2sub" style="font-size:1.2rem;color:var(--muted);margin-top:20px;opacity:0">
+      La pregunta que todos tienen miedo de hacer en voz alta.
+    </p>
+  </div>
+</section>
+
+<!-- ═══ S3 — EL GIRO ═══ -->
+<section class="slide" id="s3">
+  <div id="s3no" style="font-size:clamp(5rem,15vw,11rem);font-weight:900;color:var(--green);line-height:1;opacity:0">No.</div>
+  <div id="s3but" style="font-size:clamp(1.4rem,2.8vw,2.4rem);margin-top:20px;max-width:700px;text-align:center;opacity:0">
+    Pero sí viene por tu<br><span class="or">forma antigua de trabajar.</span>
+  </div>
+  <div id="s3boom" style="position:absolute;inset:0;pointer-events:none;overflow:hidden"></div>
+</section>
+
+<!-- ═══ S4 — HISTORIA ═══ -->
+<section class="slide" id="s4">
+  <div style="text-align:center;max-width:860px">
+    <div class="badge" id="s4b" style="opacity:0;justify-content:center">ACT 2 — La Evolución</div>
+    <h2 class="huge" id="s4t" style="opacity:0">La programación<br><span class="grad">siempre estuvo cambiando.</span></h2>
+    <p id="s4sub" class="body" style="color:var(--muted);margin-top:20px;opacity:0">
+      Lo que hoy parece disruptivo, mañana será el nuevo estándar.<br>
+      Lo que parece amenaza, es en realidad una evolución.
+    </p>
+    <div id="s4hint" style="margin-top:44px;opacity:0;font-family:var(--mono);font-size:.85rem;color:var(--pl)">
+      La historia lo demuestra →
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S5 — LÍNEA HISTÓRICA ═══ -->
+<section class="slide" id="s5">
+  <div style="width:100%;max-width:1200px">
+    <p id="s5lab" style="font-family:var(--mono);font-size:.8rem;color:var(--muted);margin-bottom:28px;opacity:0">
+      La evolución histórica del desarrollo de software:
+    </p>
+    <div class="tl">
+      <div class="era e1" id="er1">
+        <div class="era-n">ERA 01</div>
+        <div class="era-t">Bajo Nivel</div>
+        <span class="era-tag">Ensamblador</span>
+        <span class="era-tag">Manejo manual</span>
+        <span class="era-tag">Memoria directa</span>
+        <span class="era-tag">Muy técnico</span>
+      </div>
+      <div class="era-arr" id="ar1">
+        <svg width="36" height="16" viewBox="0 0 36 16">
+          <defs><marker id="mh1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0,8 3,0 6" fill="#555"/></marker></defs>
+          <path id="ap1" d="M0 8 L26 8" stroke="#555" stroke-width="2" fill="none" marker-end="url(#mh1)"/>
+        </svg>
+      </div>
+      <div class="era e2" id="er2">
+        <div class="era-n">ERA 02</div>
+        <div class="era-t">Frameworks &amp; Abstracciones</div>
+        <span class="era-tag">Java · Spring</span>
+        <span class="era-tag">React · Angular</span>
+        <span class="era-tag">ORMs · Librerías</span>
+        <span class="era-tag">Abstracciones</span>
+      </div>
+      <div class="era-arr" id="ar2">
+        <svg width="36" height="16" viewBox="0 0 36 16">
+          <defs><marker id="mh2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0,8 3,0 6" fill="#555"/></marker></defs>
+          <path id="ap2" d="M0 8 L26 8" stroke="#555" stroke-width="2" fill="none" marker-end="url(#mh2)"/>
+        </svg>
+      </div>
+      <div class="era e3" id="er3">
+        <div class="era-n">ERA 03</div>
+        <div class="era-t">Cloud &amp; DevOps</div>
+        <span class="era-tag">CI/CD Pipelines</span>
+        <span class="era-tag">Containers</span>
+        <span class="era-tag">IaC · Serverless</span>
+        <span class="era-tag">Automatización</span>
+      </div>
+      <div class="era-arr" id="ar3">
+        <svg width="36" height="16" viewBox="0 0 36 16">
+          <defs><marker id="mh3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0,8 3,0 6" fill="#f97316"/></marker></defs>
+          <path id="ap3" d="M0 8 L26 8" stroke="#f97316" stroke-width="2.5" fill="none" marker-end="url(#mh3)"/>
+        </svg>
+      </div>
+      <div class="era e4" id="er4">
+        <div class="era-n">ERA 04 — HOY</div>
+        <div class="era-t">AI-First Development</div>
+        <span class="era-tag">Copilotos IA</span>
+        <span class="era-tag">Agentes autónomos</span>
+        <span class="era-tag">Spec-Driven Dev</span>
+        <span class="era-tag">AI-Orchestration</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S6 — FRASE GENERACIONES ═══ -->
+<section class="slide" id="s6">
+  <blockquote id="s6q" style="font-size:clamp(1.4rem,2.8vw,2.2rem);font-style:italic;line-height:1.6;max-width:880px;text-align:center;position:relative;opacity:0">
+    <span style="font-size:5rem;color:rgba(124,58,237,.2);position:absolute;top:-30px;left:-20px;font-family:Georgia;line-height:1">"</span>
+    "Cada generación de desarrolladores<br>creyó que la siguiente<br>
+    <span class="hi">ya no programaba de verdad.</span>"
+    <span id="s6line" style="display:block;height:3px;background:var(--purple);margin-top:20px;width:0"></span>
+  </blockquote>
+  <p id="s6fn" style="font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-top:44px;opacity:0">
+    — Y siempre estuvieron equivocados.
+  </p>
+</section>
+
+<!-- ═══ S7 — EL GRAN ERROR ═══ -->
+<section class="slide" id="s7">
+  <div class="badge" id="s7b" style="opacity:0;justify-content:center">ACT 3 — El Error Crítico</div>
+  <div id="s7x" style="font-size:6rem;color:var(--red);line-height:1;opacity:0">✕</div>
+  <h2 class="huge" id="s7t" style="opacity:0;margin-top:12px">El Gran Error</h2>
+  <p class="big" id="s7p" style="opacity:0;margin-top:14px;color:var(--muted);max-width:680px;text-align:center">
+    Creer que <span class="re">IA = no aprender fundamentos</span>
+  </p>
+</section>
+
+<!-- ═══ S8 — FUNDAMENTOS ═══ -->
+<section class="slide" id="s8">
+  <div style="width:100%;max-width:1100px">
+    <h2 class="huge" id="s8t" style="opacity:0">
+      La IA hace los fundamentos<br><span class="gr">más importantes</span>, no menos.
+    </h2>
+    <div class="fg">
+      <div class="fi"><span>🏛️</span>Arquitectura de software</div>
+      <div class="fi"><span>🧩</span>Patrones de diseño</div>
+      <div class="fi"><span>🔒</span>Seguridad (OWASP)</div>
+      <div class="fi"><span>🧪</span>Testing &amp; QA</div>
+      <div class="fi"><span>📐</span>Principios SOLID</div>
+      <div class="fi"><span>🌐</span>Diseño de APIs</div>
+      <div class="fi"><span>⚡</span>Performance &amp; Scaling</div>
+      <div class="fi"><span>🔗</span>Sistemas distribuidos</div>
+      <div class="fi"><span>🐛</span>Debugging avanzado</div>
+      <div class="fi"><span>🗄️</span>Modelado de datos</div>
+      <div class="fi"><span>☁️</span>Cloud Architecture</div>
+      <div class="fi"><span>🔄</span>DevOps &amp; CI/CD</div>
+    </div>
+    <p id="s8q" style="font-size:1.2rem;font-style:italic;color:var(--muted);text-align:center;opacity:0">
+      "La IA es rápida generando código. Pero todavía es <span style="color:var(--cyan);font-style:normal;font-weight:600">mediocre tomando decisiones.</span>"
+    </p>
+  </div>
+</section>
+
+<!-- ═══ S9 — JUNIOR vs SENIOR ═══ -->
+<section class="slide" id="s9">
+  <div class="vs-card jr" id="vsj" style="opacity:0">
+    <div class="vs-who">💥 JUNIOR + IA</div>
+    <div class="vs-em">🤦</div>
+    <p style="font-size:.88rem;color:var(--muted);line-height:1.5">"Hazme una app bancaria completa"</p>
+    <div class="vs-res"><span id="lcnt">0</span>K líneas</div>
+    <p style="font-size:.8rem;color:var(--red)">de código sin revisar,<br>sin tests, sin seguridad</p>
+    <div class="vs-pill">Prompting sin fundamentos<br>= deuda técnica acelerada</div>
+  </div>
+  <div class="vs-sep" id="vsbadge" style="opacity:0">VS</div>
+  <div class="vs-card sr" id="vss" style="opacity:0">
+    <div class="vs-who">🚀 SENIOR + IA</div>
+    <div class="vs-em">🧠</div>
+    <p style="font-size:.88rem;color:var(--muted);line-height:1.5">Spec → Arquitectura → Seguridad → Implementación</p>
+    <div class="vs-res">Sistemas completos</div>
+    <p style="font-size:.8rem;color:var(--green)">en días, no semanas,<br>con calidad de producción</p>
+    <div class="vs-pill">Criterio + IA<br>= multiplicador exponencial</div>
+  </div>
+</section>
+
+<!-- ═══ S10 — EL VALOR ═══ -->
+<section class="slide" id="s10">
+  <p id="v1" style="font-size:clamp(1rem,1.8vw,1.5rem);color:var(--muted);opacity:0">El valor ya no está en</p>
+  <div class="sw" style="margin:8px 0">
+    <p id="v2" style="font-size:clamp(2rem,4.5vw,4rem);font-weight:700;color:var(--muted);opacity:0">ESCRIBIR CÓDIGO</p>
+    <div class="sl" id="vstrike"></div>
+  </div>
+  <p id="v3" style="font-size:clamp(1rem,1.8vw,1.5rem);color:var(--muted);margin-top:28px;opacity:0">El valor está en</p>
+  <p id="v4" class="mega grad" style="opacity:0;margin-top:8px;line-height:1">TOMAR<br>DECISIONES.</p>
+</section>
+
+<!-- ═══ S11 — DEL CODER AL ORQUESTADOR ═══ -->
+<section class="slide" id="s11">
+  <div class="evo-flow">
+    <div class="badge" id="s11b" style="opacity:0">ACT 4 — La Nueva Identidad</div>
+    <div class="ev-step ev1" id="ev1">🖥️  Coder</div>
+    <div class="ev-arr" id="ea1">
+      <svg width="18" height="28" viewBox="0 0 18 28"><path d="M9 0 L9 18" stroke="#555" stroke-width="2" fill="none"/><polygon points="3,16 9,28 15,16" fill="#555"/></svg>
+    </div>
+    <div class="ev-step ev2" id="ev2">⚙️  Developer</div>
+    <div class="ev-arr" id="ea2">
+      <svg width="18" height="28" viewBox="0 0 18 28"><path d="M9 0 L9 18" stroke="#06b6d4" stroke-width="2" fill="none"/><polygon points="3,16 9,28 15,16" fill="#06b6d4"/></svg>
+    </div>
+    <div class="ev-step ev3" id="ev3">🏗️  Engineer</div>
+    <div class="ev-arr" id="ea3">
+      <svg width="18" height="28" viewBox="0 0 18 28"><path d="M9 0 L9 18" stroke="#f97316" stroke-width="2.5" fill="none"/><polygon points="3,16 9,28 15,16" fill="#f97316"/></svg>
+    </div>
+    <div class="ev-step ev4" id="ev4">🎯  AI-Orchestrator Engineer</div>
+  </div>
+  <div class="evo-desc">
+    <div class="ed-item" id="ed1">
+      <div class="ed-t">El rol ha evolucionado</div>
+      <div class="ed-b">Ya no somos solo programadores. Somos arquitectos, revisores, diseñadores de sistemas y directores de inteligencia artificial.</div>
+    </div>
+    <div class="ed-item" id="ed2">
+      <div class="ed-t">El nuevo toolkit del ingeniero</div>
+      <div class="ed-b">Diseñar sistemas → Validar arquitecturas → Definir specs → Revisar seguridad → Pensar edge cases → Dirigir agentes IA</div>
+    </div>
+    <div class="ed-item" id="ed3">
+      <div class="ed-t" style="font-style:italic;color:var(--pl)">"Ya no somos solo programadores. Somos arquitectos, revisores y orquestadores de inteligencia."</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S12 — ANTES vs AHORA ═══ -->
+<section class="slide" id="s12">
+  <div style="width:100%;max-width:1100px">
+    <h2 class="big" id="s12t" style="opacity:0;margin-bottom:28px">El trabajo del ingeniero <span class="grad">cambió radicalmente</span></h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
+      <div class="av-col av-a">
+        <div class="av-ct">⌛ Antes</div>
+        <div class="av-item" id="at1"><span>💬</span> Escribir ifs y loops</div>
+        <div class="av-item" id="at2"><span>🔄</span> Boilerplate repetitivo</div>
+        <div class="av-item" id="at3"><span>📝</span> CRUDs sin valor estratégico</div>
+        <div class="av-item" id="at4"><span>🔎</span> Buscar docs en Google horas</div>
+        <div class="av-item" id="at5"><span>🐌</span> Semanas por feature sencilla</div>
+      </div>
+      <div class="av-col av-b">
+        <div class="av-ct">🚀 Ahora</div>
+        <div class="av-item" id="ah1"><span>🏛️</span> Diseñar sistemas completos</div>
+        <div class="av-item" id="ah2"><span>🔒</span> Validar arquitectura y seguridad</div>
+        <div class="av-item" id="ah3"><span>📋</span> Definir especificaciones claras</div>
+        <div class="av-item" id="ah4"><span>🎯</span> Pensar edge cases críticos</div>
+        <div class="av-item" id="ah5"><span>🤖</span> Dirigir agentes IA con criterio</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S13 — NO ES VIBE CODING ═══ -->
+<section class="slide" id="s13">
+  <div style="position:relative;display:inline-block">
+    <p class="vt" id="vct">VIBE CODING</p>
+    <div class="vx" id="vcx">✕</div>
+  </div>
+  <p id="vcq" style="font-size:clamp(1.1rem,2.2vw,1.8rem);margin-top:28px;opacity:0">
+    <span class="re">"hazme una app y reza 🙏"</span>
+  </p>
+  <p id="vcs" style="font-size:.9rem;color:var(--muted);margin-top:10px;font-family:var(--mono);opacity:0">
+    Eso funciona… hasta que el proyecto crece.
+  </p>
+  <div id="vcbox" style="margin-top:36px;padding:22px 32px;border-radius:16px;background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.25);max-width:580px;text-align:center;opacity:0">
+    <p style="font-size:1.25rem;font-weight:600">
+      "Vibe coding crea <span class="re">demos</span>.<br>
+      Ingeniería crea <span class="gr">productos</span>."
+    </p>
+  </div>
+</section>
+
+<!-- ═══ S14 — SPEC-DRIVEN DEV ═══ -->
+<section class="slide" id="s14">
+  <div style="width:100%;max-width:1100px">
+    <div class="badge" id="s14b" style="opacity:0">ACT 5 — El Futuro Ya Llegó</div>
+    <h2 class="huge" id="s14t" style="opacity:0">Spec-Driven<br><span class="grad">Development</span></h2>
+    <p id="s14sub" class="body" style="color:var(--muted);margin-top:14px;max-width:680px;opacity:0">
+      "La IA funciona mejor cuando primero existe claridad."
+    </p>
+    <div class="sdd-g">
+      <div class="sdd-c" id="sc1"><div class="sdd-ci">📋</div><div class="sdd-ct">Specs como artefactos</div><div class="sdd-cb">Las especificaciones no son solo documentos de planificación. Son artefactos ejecutables que dirigen y validan la implementación.</div></div>
+      <div class="sdd-c" id="sc2"><div class="sdd-ci">🧠</div><div class="sdd-ct">Humanos toman las decisiones</div><div class="sdd-cb">En Vibe Coding, la IA decide la arquitectura. En SDD, los humanos mantienen el control del diseño del sistema.</div></div>
+      <div class="sdd-c" id="sc3"><div class="sdd-ci">🔗</div><div class="sdd-ct">Trazabilidad completa</div><div class="sdd-cb">Cada línea de código se rastrea hasta una tarea → diseño → requerimiento. Cero código huérfano.</div></div>
+      <div class="sdd-c" id="sc4"><div class="sdd-ci">⚡</div><div class="sdd-ct">1948% de crecimiento en adopción</div><div class="sdd-cb">Empresas que adoptan SDD reportan mejor calidad, menos bugs y entregas más rápidas. (Prommer, 2026)</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S15 — SPEC → PLAN → CODE ═══ -->
+<section class="slide" id="s15">
+  <h2 class="big" id="s15t" style="opacity:0;margin-bottom:44px;text-align:center">El flujo que <span class="grad">cambia todo</span></h2>
+  <div class="flow-wrap">
+    <div class="fb fb-spec" id="fb1">
+      <div class="fb-ico">📋</div>
+      <div class="fb-t">SPEC</div>
+      <ul class="fb-ul">
+        <li>User stories</li>
+        <li>Criterios de aceptación</li>
+        <li>Edge cases</li>
+        <li>Restricciones</li>
+      </ul>
+    </div>
+    <div class="fa-wrap" id="fa1">
+      <svg width="56" height="36" viewBox="0 0 56 36">
+        <defs><marker id="fmh1" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#7c3aed"/></marker></defs>
+        <path id="fp1" d="M0 18 L44 18" stroke="#7c3aed" stroke-width="3" fill="none" marker-end="url(#fmh1)"/>
+      </svg>
+    </div>
+    <div class="fb fb-plan" id="fb2">
+      <div class="fb-ico">🗺️</div>
+      <div class="fb-t">PLAN</div>
+      <ul class="fb-ul">
+        <li>Arquitectura</li>
+        <li>Esquemas de datos</li>
+        <li>Contratos de API</li>
+        <li>Lista de tareas</li>
+      </ul>
+    </div>
+    <div class="fa-wrap" id="fa2">
+      <svg width="56" height="36" viewBox="0 0 56 36">
+        <defs><marker id="fmh2" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+          <polygon points="0 0,9 3.5,0 7" fill="#06b6d4"/></marker></defs>
+        <path id="fp2" d="M0 18 L44 18" stroke="#06b6d4" stroke-width="3" fill="none" marker-end="url(#fmh2)"/>
+      </svg>
+    </div>
+    <div class="fb fb-code" id="fb3">
+      <div class="fb-ico">💻</div>
+      <div class="fb-t">CODE</div>
+      <ul class="fb-ul">
+        <li>IA implementa</li>
+        <li>Tests automáticos</li>
+        <li>Validación vs spec</li>
+        <li>Deploy confiable</li>
+      </ul>
+    </div>
+  </div>
+  <p id="s15q" style="margin-top:36px;font-size:1.1rem;font-style:italic;color:var(--muted);text-align:center;opacity:0">
+    "La especificación se está convirtiendo en el nuevo código."
+  </p>
+</section>
+
+<!-- ═══ S16 — HERRAMIENTAS ═══ -->
+<section class="slide" id="s16">
+  <div style="width:100%;max-width:1100px">
+    <h2 class="big" id="s16t" style="opacity:0;text-align:center;margin-bottom:6px">Las herramientas <span class="grad">AI-First</span></h2>
+    <p id="s16sub" style="text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:28px;opacity:0">
+      El ecosistema que está redefiniendo cómo construimos software
+    </p>
+    <div class="tg">
+      <div class="tc" id="tc1"><div class="tc-e">🖱️</div><div class="tc-n">Cursor</div><div class="tc-d">IDE AI-first con contexto de codebase completo</div></div>
+      <div class="tc" id="tc2"><div class="tc-e">🐙</div><div class="tc-n">GitHub Copilot</div><div class="tc-d">El copiloto más adoptado. Agent mode + Workspace</div></div>
+      <div class="tc" id="tc3"><div class="tc-e">🤖</div><div class="tc-n">Claude Code</div><div class="tc-d">Agente CLI. Entiende proyectos completos con contexto</div></div>
+      <div class="tc" id="tc4"><div class="tc-e">🚀</div><div class="tc-n">AWS Kiro</div><div class="tc-d">El IDE spec-driven por excelencia. Agent Hooks + MCP</div></div>
+      <div class="tc" id="tc5"><div class="tc-e">🧠</div><div class="tc-n">JetBrains AI</div><div class="tc-d">IA integrada en el ecosistema JetBrains completo</div></div>
+    </div>
+    <div id="s16note" style="margin-top:20px;padding:14px 22px;background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-radius:10px;text-align:center;opacity:0">
+      <span style="font-family:var(--mono);font-size:.8rem;color:var(--orange)">
+        💡 Todos ya soportan "Planning Mode" — generan planes, tareas y arquitectura, no solo código.
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S17 — CIERRE ═══ -->
+<section class="slide" id="s17">
+  <div>
+    <h2 class="big" id="clt" style="opacity:0;margin-bottom:28px">
+      La pregunta correcta no es<br><span class="re">¿la IA viene por mi trabajo?</span>
+    </h2>
+    <p class="cq" id="cq1">
+      "La IA no elimina la necesidad de ingenieros.<br>
+      Elimina la necesidad de ingenieros que <span class="hi">solo traducían ideas a sintaxis</span>."
+    </p>
+    <p class="cq" id="cq2">
+      "La diferencia ya no será quién escribe más código.<br>
+      Sino <span class="gr">quién entiende mejor los problemas</span>."
+    </p>
+    <div class="evo-badges" id="evofin">
+      <span class="eb eb1">Coder</span><span class="sep">→</span>
+      <span class="eb eb2">Developer</span><span class="sep">→</span>
+      <span class="eb eb3">Engineer</span><span class="sep">→</span>
+      <span class="eb eb4">AI-Orchestrator</span>
+    </div>
+    <p id="clast" style="margin-top:20px;font-size:1rem;font-style:italic;color:var(--pl);opacity:0">
+      "La IA no viene por tu trabajo. Viene por la versión antigua de cómo trabajábamos."
+    </p>
+  </div>
+  <div>
+    <div class="cc" id="ccard">
+      <img class="cc-av" src="https://avatars.githubusercontent.com/u/28914781?v=4" alt="Edwar Díaz"
+        onerror="this.outerHTML='<div class=\'cc-av\' style=\'background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:1.4rem\'>ED</div>'">
+      <div class="cc-n">Edwar Díaz</div>
+      <div class="cc-h">@BOTOOM · edwardiaz.dev</div>
+      <div class="cc-h">Full Stack &amp; DevOps Engineer</div>
+      <div class="soc-row" style="margin-top:12px">
+        <a href="https://github.com/BOTOOM" target="_blank" class="soc">GitHub</a>
+        <a href="https://linkedin.com/in/edwar-diaz" target="_blank" class="soc">LinkedIn</a>
+        <a href="https://botoom.hashnode.dev" target="_blank" class="soc">Blog</a>
+        <a href="https://edwardiaz.dev" target="_blank" class="soc">Portfolio</a>
+      </div>
+    </div>
+    <div id="cqr" style="text-align:center;margin-top:14px;opacity:0">
+      <div style="width:90px;height:90px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:.55rem;color:#333;font-family:var(--mono);text-align:center;line-height:1.4">
+        QR<br>edwardiaz.dev
+      </div>
+      <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted)">edwardiaz.dev</div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /deck -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+const TOTAL = 18;
+let cur = 0, busy = false;
+
+// ── DOTS ──
+const dotsEl = document.getElementById('dots');
+for (let i = 0; i < TOTAL; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' on' : '');
+  d.onclick = () => go(i);
+  dotsEl.appendChild(d);
+}
+
+function ui() {
+  document.getElementById('counter').textContent = `${cur+1} / ${TOTAL}`;
+  document.getElementById('progress').style.width = `${((cur+1)/TOTAL)*100}%`;
+  document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('on', i === cur));
+}
+
+// ── NAVIGATE ──
+function go(next) {
+  if (busy || next === cur || next < 0 || next >= TOTAL) return;
+  busy = true;
+  const slides = document.querySelectorAll('.slide');
+  const dir = next > cur ? 1 : -1;
+  const from = slides[cur], to = slides[next];
+  gsap.set(to, { xPercent: dir * 100, visibility: 'visible' });
+  gsap.timeline({ onComplete() {
+    gsap.set(from, { visibility: 'hidden', xPercent: 0 });
+    from.classList.remove('active');
+    to.classList.add('active');
+    cur = next; ui(); busy = false;
+    anim(cur);
+  }})
+  .to(from, { xPercent: -dir * 100, duration: .55, ease: 'power3.inOut' })
+  .to(to,   { xPercent: 0,          duration: .55, ease: 'power3.inOut' }, 0);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(cur+1); }
+  if (e.key === 'ArrowLeft')  go(cur-1);
+  if (e.key === 'Escape')     window.location.href = '../../index.html';
+  const n = parseInt(e.key);
+  if (!isNaN(n) && n >= 1 && n <= 9) go(n-1);
+});
+
+let tx = 0;
+document.addEventListener('touchstart', e => tx = e.touches[0].clientX, { passive: true });
+document.addEventListener('touchend',   e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) go(dx < 0 ? cur+1 : cur-1);
+});
+
+// ── PARTICLES BG ──
+(function(){
+  const cv = document.getElementById('pbg'), ctx = cv.getContext('2d');
+  cv.width = innerWidth; cv.height = innerHeight;
+  const pts = Array.from({length:50}, () => ({
+    x: Math.random()*innerWidth, y: Math.random()*innerHeight,
+    vx: (Math.random()-.5)*.25, vy: (Math.random()-.5)*.25,
+    r: Math.random()*1.8+.4
+  }));
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.fillStyle = 'rgba(124,58,237,.55)';
+    pts.forEach(p => {
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>cv.width) p.vx*=-1;
+      if(p.y<0||p.y>cv.height) p.vy*=-1;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  })();
+  window.addEventListener('resize',()=>{cv.width=innerWidth;cv.height=innerHeight;});
+})();
+
+// ── CODE RAIN ──
+let rainTimer = null;
+function startRain() {
+  const cv = document.getElementById('code-canvas');
+  if (!cv) return;
+  cv.width = cv.offsetWidth; cv.height = cv.offsetHeight;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const COLS = Math.floor(W / 14);
+  const drops = Array(COLS).fill(0).map(() => Math.random() * (H/14));
+  const chars = 'ABCDEFGHabcdef01{}[]()<>=!@#$%;:'.split('');
+  rainTimer = setInterval(() => {
+    ctx.fillStyle = 'rgba(5,5,16,.06)';
+    ctx.fillRect(0,0,W,H);
+    ctx.font = '13px "Space Mono",monospace';
+    drops.forEach((y,i) => {
+      const c = chars[Math.floor(Math.random()*chars.length)];
+      const p = y/(H/14);
+      ctx.fillStyle = p < 3 ? `rgba(124,58,237,${Math.max(.1,1-p*.04)})` : `rgba(6,182,212,${Math.max(.05,.5-p*.02)})`;
+      ctx.fillText(c, i*14, y*14);
+      drops[i] = (y > H/14 + Math.random()*H) ? 0 : y+1;
+    });
+  }, 50);
+}
+function stopRain() { if(rainTimer){ clearInterval(rainTimer); rainTimer=null; } }
+
+// ── ANIMATED ARROWS (flow paths) ──
+function drawArrow(pathEl, dur, delay) {
+  if (!pathEl) return;
+  const len = pathEl.getTotalLength ? pathEl.getTotalLength() : 44;
+  pathEl.style.strokeDasharray = len;
+  pathEl.style.strokeDashoffset = len;
+  gsap.to(pathEl, { strokeDashoffset: 0, duration: dur||.7, delay: delay||0, ease: 'power2.inOut' });
+}
+
+// ── PARTICLE BURST ──
+function burst(parentId, colors, count) {
+  const el = document.getElementById(parentId);
+  if (!el) return;
+  for (let k = 0; k < count; k++) {
+    const p = document.createElement('div');
+    p.style.cssText = `position:absolute;width:8px;height:8px;border-radius:50%;background:${colors[k%colors.length]};left:50%;top:50%;`;
+    el.appendChild(p);
+    const a = (k/count)*Math.PI*2;
+    const d = 180+Math.random()*280;
+    gsap.to(p, { x:Math.cos(a)*d, y:Math.sin(a)*d, opacity:0, duration:1.4+Math.random()*.6, ease:'power3.out', delay:Math.random()*.2 });
+  }
+}
+
+// ── PER-SLIDE ANIMATIONS ──
+function anim(i) {
+  if (i === 0) {
+    gsap.timeline()
+      .from(['#t1','#t2'], { y:60, opacity:0, duration:.75, stagger:.14, ease:'power3.out' })
+      .to('#s0sub',  { opacity:1, y:0, duration:.55 }, '-=.2')
+      .to('#s0ev',   { opacity:1, duration:.4 }, '-=.3')
+      .to('#s0tags', { opacity:1, duration:.5 }, '-=.2')
+      .to('#s0sp',   { opacity:1, scale:1, duration:.6, ease:'back.out(1.4)' }, '-=.3')
+      .to('#s0hint', { opacity:1, duration:.4 }, '+=.3');
+  }
+
+  if (i === 1) {
+    stopRain(); startRain();
+    const tl = gsap.timeline({ delay:.3 });
+    ['#ci1','#ci2','#ci3','#ci4'].forEach((id,k) => {
+      tl.to(id, { opacity:1, x:0, duration:.38, ease:'power2.out' }, k*.38)
+        .from(id+' .ci-icon', { scale:0, duration:.28, ease:'back.out(2)' }, k*.38+.08);
+    });
+    tl.to('#s1then', { opacity:1, duration:.45 }, '+=.2')
+      .to('#s1ai',   { opacity:1, scale:1, duration:.4, ease:'back.out(1.6)' }, '+=.3');
+  } else stopRain();
+
+  if (i === 2) {
+    gsap.timeline()
+      .to('#s2b',   { opacity:1, duration:.4 })
+      .from('#s2q', { scale:.85, opacity:0, duration:.7, ease:'back.out(1.4)' }, '-=.15')
+      .to('#s2sub', { opacity:1, duration:.4 }, '+=.2');
+    gsap.to('.vt-q', { opacity:.2, scale:1.06, duration:1.8, ease:'sine.inOut', repeat:-1, yoyo:true }, 0);
+  }
+
+  if (i === 3) {
+    gsap.timeline()
+      .to('#s3no',  { opacity:1, scale:1, duration:.5, ease:'elastic.out(1.1,.45)' })
+      .to('#s3no',  { scale:1.08, duration:.1 }, '+=.3')
+      .to('#s3no',  { scale:1,    duration:.2 })
+      .to('#s3but', { opacity:1, y:0, duration:.55, ease:'power2.out' }, '+=.25');
+    setTimeout(() => burst('s3boom', ['#7c3aed','#06b6d4','#f97316','#10b981','#ec4899'], 38), 550);
+  }
+
+  if (i === 4) {
+    gsap.timeline()
+      .to('#s4b',   { opacity:1, duration:.4 })
+      .to('#s4t',   { opacity:1, y:0, duration:.6, ease:'power2.out' }, '-=.1')
+      .to('#s4sub', { opacity:1, duration:.45 }, '-=.15')
+      .to('#s4hint',{ opacity:1, duration:.4 }, '+=.3');
+  }
+
+  if (i === 5) {
+    gsap.to('#s5lab', { opacity:1, duration:.4 });
+    const tl = gsap.timeline({ delay:.35 });
+    tl.to('#er1', { opacity:1, y:0, duration:.45, ease:'power2.out' })
+      .to('#ar1 svg', { opacity:1, duration:.1 }, '-=.05')
+      .call(() => drawArrow(document.getElementById('ap1'), .5))
+      .to('#er2', { opacity:1, y:0, duration:.45, ease:'power2.out' }, '+=.1')
+      .to('#ar2 svg', { opacity:1, duration:.1 }, '-=.05')
+      .call(() => drawArrow(document.getElementById('ap2'), .5))
+      .to('#er3', { opacity:1, y:0, duration:.45, ease:'power2.out' }, '+=.1')
+      .to('#ar3 svg', { opacity:1, duration:.1 }, '-=.05')
+      .call(() => drawArrow(document.getElementById('ap3'), .5))
+      .to('#er4', { opacity:1, y:0, duration:.45, ease:'power2.out' }, '+=.1');
+  }
+
+  if (i === 6) {
+    gsap.timeline()
+      .to('#s6q',  { opacity:1, duration:.8, ease:'power2.out' })
+      .to('#s6line', { width:'100%', duration:1, ease:'power3.inOut' }, '-=.2')
+      .to('#s6fn', { opacity:1, duration:.45 }, '+=.3');
+  }
+
+  if (i === 7) {
+    gsap.timeline()
+      .to('#s7b', { opacity:1, duration:.4 })
+      .to('#s7x', { opacity:1, scale:1, duration:.45, ease:'back.out(1.5)' }, '-=.1')
+      .to('#s7x', { x:-8, duration:.05, yoyo:true, repeat:5 }, '+=.1')
+      .to('#s7t', { opacity:1, y:0, duration:.45, ease:'power2.out' }, '+=.1')
+      .to('#s7p', { opacity:1, duration:.4 }, '-=.15');
+  }
+
+  if (i === 8) {
+    gsap.to('#s8t', { opacity:1, duration:.55, ease:'power2.out' });
+    gsap.to('.fi', {
+      opacity:1, y:0, scale:1, duration:.38,
+      stagger:{ amount:1.1, from:'random' }, ease:'back.out(1.4)', delay:.4
+    });
+    gsap.to('#s8q', { opacity:1, duration:.5, delay:2 });
+  }
+
+  if (i === 9) {
+    gsap.timeline()
+      .to('#vsj',    { opacity:1, x:0, duration:.55, ease:'power2.out' })
+      .to('#vsbadge',{ opacity:1, scale:1, duration:.4, ease:'back.out(1.5)' }, '-=.2')
+      .to('#vss',    { opacity:1, x:0, duration:.55, ease:'power2.out' }, '-=.2');
+    gsap.to({ v:0 }, {
+      v:10, duration:2, delay:.8, ease:'power2.inOut',
+      onUpdate: function() {
+        const el = document.getElementById('lcnt');
+        if (el) el.textContent = Math.floor(this.targets()[0].v);
+      }
+    });
+  }
+
+  if (i === 10) {
+    gsap.timeline()
+      .to('#v1', { opacity:1, duration:.4 })
+      .to('#v2', { opacity:1, duration:.4 }, '+=.1')
+      .to('#vstrike', { width:'110%', duration:.55, ease:'power3.inOut' }, '+=.3')
+      .to('#v3', { opacity:1, duration:.4 }, '+=.3')
+      .from('#v4', { scale:.5, opacity:0, duration:.85, ease:'elastic.out(1,.5)' }, '-=.1');
+  }
+
+  if (i === 11) {
+    gsap.to('#s11b', { opacity:1, duration:.4 });
+    const tl = gsap.timeline({ delay:.3 });
+    [['#ev1','#ea1'],['#ev2','#ea2'],['#ev3','#ea3'],['#ev4',null]].forEach(([step,arr],k) => {
+      tl.to(step, { opacity:1, x:0, duration:.45, ease:'power2.out' }, k*.4);
+      if (arr) tl.to(arr+' svg', { opacity:1, duration:.3 }, k*.4+.2);
+    });
+    ['#ed1','#ed2','#ed3'].forEach((id,k) => {
+      tl.to(id, { opacity:1, x:0, duration:.4, ease:'power2.out' }, k*.45+.3);
+    });
+  }
+
+  if (i === 12) {
+    gsap.to('#s12t', { opacity:1, duration:.5 });
+    ['#at1','#at2','#at3','#at4','#at5'].forEach((id,k) =>
+      gsap.to(id, { opacity:.55, x:0, duration:.38, delay:.3+k*.1, ease:'power2.out' }));
+    ['#ah1','#ah2','#ah3','#ah4','#ah5'].forEach((id,k) =>
+      gsap.to(id, { opacity:1, x:0, duration:.38, delay:.45+k*.1, ease:'power2.out' }));
+  }
+
+  if (i === 13) {
+    gsap.timeline()
+      .to('#vcx',  { opacity:1, scale:1, duration:.42, ease:'back.out(1.5)' }, .3)
+      .to('#vcq',  { opacity:1, y:0, duration:.45 }, .65)
+      .to('#vcs',  { opacity:1, duration:.38 }, .9)
+      .to('#vcbox',{ opacity:1, duration:.45, ease:'power2.out' }, 1.25);
+  }
+
+  if (i === 14) {
+    gsap.timeline()
+      .to('#s14b',   { opacity:1, duration:.4 })
+      .to('#s14t',   { opacity:1, y:0, duration:.6, ease:'power2.out' }, '-=.1')
+      .to('#s14sub', { opacity:1, duration:.4 }, '-=.15')
+      .to(['#sc1','#sc2','#sc3','#sc4'], { opacity:1, y:0, duration:.4, stagger:.13, ease:'power2.out' }, '+=.1');
+  }
+
+  if (i === 15) {
+    gsap.to('#s15t', { opacity:1, duration:.5 });
+    const tl = gsap.timeline({ delay:.35 });
+    tl.to('#fb1', { opacity:1, scale:1, duration:.45, ease:'back.out(1.4)' })
+      .call(() => {
+        const p = document.getElementById('fp1');
+        drawArrow(p, .55, 0);
+        gsap.set('#fa1 svg', { opacity:1 });
+      })
+      .to('#fb2', { opacity:1, scale:1, duration:.45, ease:'back.out(1.4)' }, '+=.4')
+      .call(() => {
+        const p = document.getElementById('fp2');
+        drawArrow(p, .55, 0);
+        gsap.set('#fa2 svg', { opacity:1 });
+      })
+      .to('#fb3', { opacity:1, scale:1, duration:.45, ease:'back.out(1.4)' }, '+=.4')
+      .to('#s15q', { opacity:1, duration:.45 }, '+=.3');
+  }
+
+  if (i === 16) {
+    gsap.timeline()
+      .to('#s16t',    { opacity:1, duration:.5 })
+      .to('#s16sub',  { opacity:1, duration:.4 }, '-=.2')
+      .to(['#tc1','#tc2','#tc3','#tc4','#tc5'], {
+        opacity:1, y:0, duration:.4, stagger:.1, ease:'back.out(1.4)'
+      }, '-=.1')
+      .to('#s16note', { opacity:1, duration:.4 }, '+=.15');
+  }
+
+  if (i === 17) {
+    gsap.timeline()
+      .to('#clt',    { opacity:1, y:0, duration:.6, ease:'power2.out' })
+      .to('#cq1',    { opacity:1, duration:.5 }, '+=.15')
+      .to('#cq2',    { opacity:1, duration:.5 }, '+=.15')
+      .to('#evofin', { opacity:1, duration:.5 }, '+=.2')
+      .to('#clast',  { opacity:1, duration:.45 }, '+=.15')
+      .to('#ccard',  { opacity:1, scale:1, duration:.55, ease:'back.out(1.4)' }, '-=.3')
+      .to('#cqr',    { opacity:1, duration:.4 }, '-=.2');
+  }
+}
+
+// ── INIT ──
+ui();
+anim(0);
+</script>
+</body>
+</html>
