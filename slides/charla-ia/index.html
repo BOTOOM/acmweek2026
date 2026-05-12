@@ -30,7 +30,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #s1{display:grid;grid-template-columns:380px 1fr;gap:56px;align-items:center;padding:64px 72px;}
 #s9{display:grid;grid-template-columns:1fr 80px 1fr;gap:24px;align-items:center;padding:64px 64px;}
 #s11{flex-direction:row;gap:0;align-items:center;padding:64px 60px;}
-#s17{display:grid;grid-template-columns:1fr 260px;gap:48px;align-items:center;padding:64px 72px;}
+#s17{display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;padding:48px 80px;gap:24px;}
 
 /* === UI CHROME === */
 #progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--cyan));z-index:100;transition:width .35s;}
@@ -165,7 +165,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .fa-wrap{padding:0 10px;display:flex;align-items:center;}
 
 /* === SLIDE 16 — TOOLS === */
-.tg{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:28px;width:100%;}
+.tg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px;width:100%;max-width:1000px;}
 .tc{padding:18px 14px;border-radius:14px;border:1px solid var(--border);background:var(--surface);text-align:center;opacity:0;transition:all .3s;}
 .tc:hover{border-color:var(--purple);transform:translateY(-4px);}
 .tc-e{font-size:1.8rem;margin-bottom:8px;}
@@ -188,6 +188,47 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 /* background particles */
 #pbg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.35;}
+
+/* === AUDITORIUM / VIDEOBEAM OVERRIDES — bigger fonts for projector === */
+.mega{font-size:clamp(4.5rem,9vw,8rem)!important;}
+.huge{font-size:clamp(3rem,5.5vw,5rem)!important;}
+.big{font-size:clamp(2rem,3.5vw,3.2rem)!important;}
+.body{font-size:clamp(1.4rem,2vw,1.8rem)!important;}
+.badge{font-size:14px!important;padding:6px 16px!important;}
+.ci{font-size:1.5rem!important;}
+.era-n{font-size:.95rem!important;}
+.era-t{font-size:1.3rem!important;}
+.era-tag{font-size:.9rem!important;padding:4px 10px!important;}
+.fi{font-size:1.05rem!important;padding:14px 16px!important;}
+.vs-who{font-size:1.05rem!important;margin-bottom:12px!important;}
+.vs-em{font-size:3rem!important;}
+.vs-res{font-size:2rem!important;}
+.vs-pill{font-size:.95rem!important;padding:10px 16px!important;line-height:1.5!important;}
+.vs-sep{font-size:2.6rem!important;}
+.ev-step{font-size:1.4rem!important;padding:16px 32px!important;min-width:300px!important;}
+.ev4{font-size:1.5rem!important;}
+.ed-t{font-size:1.15rem!important;}
+.ed-b{font-size:1.05rem!important;line-height:1.6!important;}
+.av-ct{font-size:1rem!important;}
+.av-item{font-size:1.15rem!important;}
+.sdd-ct{font-size:1.2rem!important;}
+.sdd-cb{font-size:1rem!important;line-height:1.6!important;}
+.sdd-ci{font-size:2.6rem!important;}
+.fb-ico{font-size:2.8rem!important;}
+.fb-t{font-size:2rem!important;}
+.fb-ul li{font-size:.95rem!important;padding:5px 0!important;}
+.tc-n{font-size:1.2rem!important;margin-bottom:8px!important;}
+.tc-d{font-size:.95rem!important;line-height:1.5!important;}
+.tc-e img{width:44px!important;height:44px!important;}
+.cq{font-size:clamp(1.5rem,2.2vw,2rem)!important;line-height:1.55!important;}
+.eb{font-size:1.1rem!important;padding:10px 22px!important;}
+.sep{font-size:1.5rem!important;}
+.cc-n{font-size:1.4rem!important;}
+.cc-h{font-size:1rem!important;}
+.sp-name{font-size:1.2rem!important;}
+.sp-role{font-size:.9rem!important;}
+.vt{font-size:clamp(3rem,8vw,6.5rem)!important;}
+.vx{font-size:clamp(3.5rem,9vw,8rem)!important;}
 </style>
 </head>
 <body>
@@ -294,7 +335,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <!-- ═══ S5 — LÍNEA HISTÓRICA ═══ -->
 <section class="slide" id="s5">
   <div style="width:100%;max-width:1200px">
-    <p id="s5lab" style="font-family:var(--mono);font-size:.8rem;color:var(--muted);margin-bottom:28px;opacity:0">
+    <p id="s5lab" style="font-family:var(--mono);font-size:1rem;color:var(--muted);margin-bottom:28px;opacity:0">
       La evolución histórica del desarrollo de software:
     </p>
     <div class="tl">
@@ -357,13 +398,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <!-- ═══ S6 — FRASE GENERACIONES ═══ -->
 <section class="slide" id="s6">
-  <blockquote id="s6q" style="font-size:clamp(1.4rem,2.8vw,2.2rem);font-style:italic;line-height:1.6;max-width:880px;text-align:center;position:relative;opacity:0">
+  <blockquote id="s6q" style="font-size:clamp(2rem,3.8vw,3.2rem);font-style:italic;line-height:1.6;max-width:880px;text-align:center;position:relative;opacity:0">
     <span style="font-size:5rem;color:rgba(124,58,237,.2);position:absolute;top:-30px;left:-20px;font-family:Georgia;line-height:1">"</span>
     "Cada generación de desarrolladores<br>creyó que la siguiente<br>
     <span class="hi">ya no programaba de verdad.</span>"
     <span id="s6line" style="display:block;height:3px;background:var(--purple);margin-top:20px;width:0"></span>
   </blockquote>
-  <p id="s6fn" style="font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-top:44px;opacity:0">
+  <p id="s6fn" style="font-family:var(--mono);font-size:1.2rem;color:var(--muted);margin-top:44px;opacity:0">
     — Y siempre estuvieron equivocados.
   </p>
 </section>
@@ -398,7 +439,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
       <div class="fi"><span>☁️</span>Cloud Architecture</div>
       <div class="fi"><span>🔄</span>DevOps &amp; CI/CD</div>
     </div>
-    <p id="s8q" style="font-size:1.2rem;font-style:italic;color:var(--muted);text-align:center;opacity:0">
+    <p id="s8q" style="font-size:1.6rem;font-style:italic;color:var(--muted);text-align:center;opacity:0">
       "La IA es rápida generando código. Pero todavía es <span style="color:var(--cyan);font-style:normal;font-weight:600">mediocre tomando decisiones.</span>"
     </p>
   </div>
@@ -408,32 +449,41 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <section class="slide" id="s9">
   <div class="vs-card jr" id="vsj" style="opacity:0">
     <div class="vs-who">💥 JUNIOR + IA</div>
-    <div class="vs-em">🤦</div>
-    <p style="font-size:.88rem;color:var(--muted);line-height:1.5">"Hazme una app bancaria completa"</p>
-    <div class="vs-res"><span id="lcnt">0</span>K líneas</div>
-    <p style="font-size:.8rem;color:var(--red)">de código sin revisar,<br>sin tests, sin seguridad</p>
-    <div class="vs-pill">Prompting sin fundamentos<br>= deuda técnica acelerada</div>
+    <div class="vs-em">🚀</div>
+    <div class="vs-res" style="color:var(--orange)">MVP en horas</div>
+    <p style="color:var(--muted);line-height:1.6;margin:12px 0">"Hazme una app bancaria completa"<br>→ demo funcional, rápida</p>
+    <p style="color:var(--red);line-height:1.6">Sin tests · Sin arquitectura<br>Sin seguridad · Deuda técnica masiva</p>
+    <div class="vs-pill">Fast to demo → Expensive to scale</div>
   </div>
   <div class="vs-sep" id="vsbadge" style="opacity:0">VS</div>
   <div class="vs-card sr" id="vss" style="opacity:0">
-    <div class="vs-who">🚀 SENIOR + IA</div>
-    <div class="vs-em">🧠</div>
-    <p style="font-size:.88rem;color:var(--muted);line-height:1.5">Spec → Arquitectura → Seguridad → Implementación</p>
-    <div class="vs-res">Sistemas completos</div>
-    <p style="font-size:.8rem;color:var(--green)">en días, no semanas,<br>con calidad de producción</p>
-    <div class="vs-pill">Criterio + IA<br>= multiplicador exponencial</div>
+    <div class="vs-who">🧠 SENIOR + IA</div>
+    <div class="vs-em">⏳</div>
+    <div class="vs-res">MVP en 1–2 días más</div>
+    <p style="color:var(--muted);line-height:1.6;margin:12px 0">Spec → Arquitectura → Revisión<br>→ Implementación guiada</p>
+    <p style="color:var(--green);line-height:1.6">Con tests · Escalable a producción<br>Seguro · El equipo puede mantenerlo</p>
+    <div class="vs-pill">Slower start → Durable en producción</div>
   </div>
 </section>
 
 <!-- ═══ S10 — EL VALOR ═══ -->
 <section class="slide" id="s10">
-  <p id="v1" style="font-size:clamp(1rem,1.8vw,1.5rem);color:var(--muted);opacity:0">El valor ya no está en</p>
+  <p id="v1" style="font-size:clamp(1.5rem,2.5vw,2.2rem);color:var(--muted);opacity:0">El valor ya no está en</p>
   <div class="sw" style="margin:8px 0">
     <p id="v2" style="font-size:clamp(2rem,4.5vw,4rem);font-weight:700;color:var(--muted);opacity:0">ESCRIBIR CÓDIGO</p>
     <div class="sl" id="vstrike"></div>
   </div>
-  <p id="v3" style="font-size:clamp(1rem,1.8vw,1.5rem);color:var(--muted);margin-top:28px;opacity:0">El valor está en</p>
+  <p id="v3" style="font-size:clamp(1.5rem,2.5vw,2.2rem);color:var(--muted);margin-top:28px;opacity:0">El valor está en</p>
   <p id="v4" class="mega grad" style="opacity:0;margin-top:8px;line-height:1">TOMAR<br>DECISIONES.</p>
+  <div id="v5" style="display:flex;gap:14px;margin-top:36px;flex-wrap:wrap;justify-content:center;opacity:0">
+    <span style="padding:10px 24px;border-radius:100px;border:1px solid var(--purple);color:var(--pl);font-family:var(--mono);font-size:1.1rem">Arquitectura</span>
+    <span style="padding:10px 24px;border-radius:100px;border:1px solid var(--cyan);color:var(--cyan);font-family:var(--mono);font-size:1.1rem">Criterio</span>
+    <span style="padding:10px 24px;border-radius:100px;border:1px solid var(--green);color:var(--green);font-family:var(--mono);font-size:1.1rem">Sistemas</span>
+    <span style="padding:10px 24px;border-radius:100px;border:1px solid var(--orange);color:var(--orange);font-family:var(--mono);font-size:1.1rem">Decisiones</span>
+  </div>
+  <p id="v6" style="font-size:1.6rem;color:var(--muted);margin-top:28px;font-style:italic;opacity:0">
+    "Code is becoming cheap. <span style="color:var(--pl);font-style:normal;font-weight:600">Judgment is becoming expensive.</span>"
+  </p>
 </section>
 
 <!-- ═══ S11 — DEL CODER AL ORQUESTADOR ═══ -->
@@ -589,18 +639,55 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <section class="slide" id="s16">
   <div style="width:100%;max-width:1100px">
     <h2 class="big" id="s16t" style="opacity:0;text-align:center;margin-bottom:6px">Las herramientas <span class="grad">AI-First</span></h2>
-    <p id="s16sub" style="text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:28px;opacity:0">
+    <p id="s16sub" style="text-align:center;color:var(--muted);font-size:1.1rem;margin-bottom:28px;opacity:0">
       El ecosistema que está redefiniendo cómo construimos software
     </p>
     <div class="tg">
-      <div class="tc" id="tc1"><div class="tc-e">🖱️</div><div class="tc-n">Cursor</div><div class="tc-d">IDE AI-first con contexto de codebase completo</div></div>
-      <div class="tc" id="tc2"><div class="tc-e">🐙</div><div class="tc-n">GitHub Copilot</div><div class="tc-d">El copiloto más adoptado. Agent mode + Workspace</div></div>
-      <div class="tc" id="tc3"><div class="tc-e">🤖</div><div class="tc-n">Claude Code</div><div class="tc-d">Agente CLI. Entiende proyectos completos con contexto</div></div>
-      <div class="tc" id="tc4"><div class="tc-e">🚀</div><div class="tc-n">AWS Kiro</div><div class="tc-d">El IDE spec-driven por excelencia. Agent Hooks + MCP</div></div>
-      <div class="tc" id="tc5"><div class="tc-e">🧠</div><div class="tc-n">JetBrains AI</div><div class="tc-d">IA integrada en el ecosistema JetBrains completo</div></div>
+      <div class="tc" id="tc1">
+        <div class="tc-e" style="height:52px;display:flex;align-items:center;justify-content:center">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none"><path d="M4 2L4 17L8.5 12.5L12.5 21.5L15 20.5L11 11.5L17 11.5Z" fill="white" opacity=".9"/></svg>
+        </div>
+        <div class="tc-n">Cursor</div>
+        <div class="tc-d">IDE AI-first con contexto de codebase completo</div>
+      </div>
+      <div class="tc" id="tc2">
+        <div class="tc-e" style="height:52px;display:flex;align-items:center;justify-content:center">
+          <img src="https://cdn.simpleicons.org/github/ffffff" width="38" height="38" alt="GitHub" onerror="this.outerHTML='🐙'">
+        </div>
+        <div class="tc-n">GitHub Copilot</div>
+        <div class="tc-d">El copiloto más adoptado. Agent mode + Workspace</div>
+      </div>
+      <div class="tc" id="tc3">
+        <div class="tc-e" style="height:52px;display:flex;align-items:center;justify-content:center">
+          <img src="https://cdn.simpleicons.org/anthropic/d97757" width="38" height="38" alt="Anthropic" onerror="this.outerHTML='🤖'">
+        </div>
+        <div class="tc-n">Claude Code</div>
+        <div class="tc-d">Agente CLI. Entiende proyectos completos con contexto amplio</div>
+      </div>
+      <div class="tc" id="tc4">
+        <div class="tc-e" style="height:52px;display:flex;align-items:center;justify-content:center">
+          <img src="https://cdn.simpleicons.org/amazonaws/ff9900" width="38" height="38" alt="AWS" onerror="this.outerHTML='☁️'">
+        </div>
+        <div class="tc-n">AWS Kiro</div>
+        <div class="tc-d">IDE spec-driven. Agent Hooks + MCP integrado</div>
+      </div>
+      <div class="tc" id="tc5">
+        <div class="tc-e" style="height:52px;display:flex;align-items:center;justify-content:center">
+          <img src="https://cdn.simpleicons.org/jetbrains/ffffff" width="38" height="38" alt="JetBrains" onerror="this.outerHTML='🧠'">
+        </div>
+        <div class="tc-n">JetBrains AI</div>
+        <div class="tc-d">IA integrada en el ecosistema JetBrains completo</div>
+      </div>
+      <div class="tc" id="tc6">
+        <div class="tc-e" style="height:52px;display:flex;align-items:center;justify-content:center">
+          <img src="https://cdn.simpleicons.org/codeium/09B6A2" width="38" height="38" alt="Windsurf" onerror="this.outerHTML='🌊'">
+        </div>
+        <div class="tc-n">Windsurf</div>
+        <div class="tc-d">Editor AI-native por Codeium. Flows + Cascade agent</div>
+      </div>
     </div>
     <div id="s16note" style="margin-top:20px;padding:14px 22px;background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-radius:10px;text-align:center;opacity:0">
-      <span style="font-family:var(--mono);font-size:.8rem;color:var(--orange)">
+      <span style="font-family:var(--mono);font-size:1rem;color:var(--orange)">
         💡 Todos ya soportan "Planning Mode" — generan planes, tareas y arquitectura, no solo código.
       </span>
     </div>
@@ -609,8 +696,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 <!-- ═══ S17 — CIERRE ═══ -->
 <section class="slide" id="s17">
-  <div>
-    <h2 class="big" id="clt" style="opacity:0;margin-bottom:28px">
+  <div style="max-width:920px;width:100%">
+    <h2 class="big" id="clt" style="opacity:0;margin-bottom:32px">
       La pregunta correcta no es<br><span class="re">¿la IA viene por mi trabajo?</span>
     </h2>
     <p class="cq" id="cq1">
@@ -621,35 +708,33 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
       "La diferencia ya no será quién escribe más código.<br>
       Sino <span class="gr">quién entiende mejor los problemas</span>."
     </p>
-    <div class="evo-badges" id="evofin">
+    <div class="evo-badges" id="evofin" style="justify-content:center">
       <span class="eb eb1">Coder</span><span class="sep">→</span>
       <span class="eb eb2">Developer</span><span class="sep">→</span>
       <span class="eb eb3">Engineer</span><span class="sep">→</span>
       <span class="eb eb4">AI-Orchestrator</span>
     </div>
-    <p id="clast" style="margin-top:20px;font-size:1rem;font-style:italic;color:var(--pl);opacity:0">
-      "La IA no viene por tu trabajo. Viene por la versión antigua de cómo trabajábamos."
+    <p id="clast" style="margin-top:28px;font-size:1.6rem;font-style:italic;color:var(--pl);opacity:0">
+      "La IA no viene por tu trabajo.<br>Viene por la versión antigua de cómo trabajábamos."
     </p>
   </div>
-  <div>
-    <div class="cc" id="ccard">
-      <img class="cc-av" src="https://avatars.githubusercontent.com/u/28914781?v=4" alt="Edwar Díaz"
-        onerror="this.outerHTML='<div class=\'cc-av\' style=\'background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:1.4rem\'>ED</div>'">
+  <div class="cc" id="ccard" style="display:flex;align-items:center;gap:24px;text-align:left;padding:20px 28px;max-width:700px;width:100%;opacity:0">
+    <img class="cc-av" src="https://avatars.githubusercontent.com/u/28914781?v=4" alt="Edwar Díaz"
+      style="width:72px;height:72px;flex-shrink:0"
+      onerror="this.outerHTML='<div style=\'width:72px;height:72px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0\'>ED</div>'">
+    <div>
       <div class="cc-n">Edwar Díaz</div>
-      <div class="cc-h">@BOTOOM · edwardiaz.dev</div>
       <div class="cc-h">Full Stack &amp; DevOps Engineer</div>
-      <div class="soc-row" style="margin-top:12px">
+      <div class="soc-row" style="margin-top:10px;justify-content:flex-start">
         <a href="https://github.com/BOTOOM" target="_blank" class="soc">GitHub</a>
         <a href="https://linkedin.com/in/edwar-diaz" target="_blank" class="soc">LinkedIn</a>
         <a href="https://botoom.hashnode.dev" target="_blank" class="soc">Blog</a>
         <a href="https://edwardiaz.dev" target="_blank" class="soc">Portfolio</a>
       </div>
     </div>
-    <div id="cqr" style="text-align:center;margin-top:14px;opacity:0">
-      <div style="width:90px;height:90px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:.55rem;color:#333;font-family:var(--mono);text-align:center;line-height:1.4">
-        QR<br>edwardiaz.dev
-      </div>
-      <div style="font-family:var(--mono);font-size:.65rem;color:var(--muted)">edwardiaz.dev</div>
+    <div style="margin-left:auto;text-align:center;flex-shrink:0">
+      <div style="font-family:var(--mono);font-size:1.1rem;color:var(--pl);font-weight:600">edwardiaz.dev</div>
+      <div style="font-family:var(--mono);font-size:.9rem;color:var(--muted);margin-top:4px">@BOTOOM</div>
     </div>
   </div>
 </section>
@@ -875,13 +960,6 @@ function anim(i) {
       .to('#vsj',    { opacity:1, x:0, duration:.55, ease:'power2.out' })
       .to('#vsbadge',{ opacity:1, scale:1, duration:.4, ease:'back.out(1.5)' }, '-=.2')
       .to('#vss',    { opacity:1, x:0, duration:.55, ease:'power2.out' }, '-=.2');
-    gsap.to({ v:0 }, {
-      v:10, duration:2, delay:.8, ease:'power2.inOut',
-      onUpdate: function() {
-        const el = document.getElementById('lcnt');
-        if (el) el.textContent = Math.floor(this.targets()[0].v);
-      }
-    });
   }
 
   if (i === 10) {
@@ -890,7 +968,9 @@ function anim(i) {
       .to('#v2', { opacity:1, duration:.4 }, '+=.1')
       .to('#vstrike', { width:'110%', duration:.55, ease:'power3.inOut' }, '+=.3')
       .to('#v3', { opacity:1, duration:.4 }, '+=.3')
-      .from('#v4', { scale:.5, opacity:0, duration:.85, ease:'elastic.out(1,.5)' }, '-=.1');
+      .from('#v4', { scale:.5, opacity:0, duration:.85, ease:'elastic.out(1,.5)' }, '-=.1')
+      .to('#v5', { opacity:1, duration:.6, ease:'power2.out' }, '+=.3')
+      .to('#v6', { opacity:1, duration:.5 }, '+=.2');
   }
 
   if (i === 11) {
@@ -952,7 +1032,7 @@ function anim(i) {
     gsap.timeline()
       .to('#s16t',    { opacity:1, duration:.5 })
       .to('#s16sub',  { opacity:1, duration:.4 }, '-=.2')
-      .to(['#tc1','#tc2','#tc3','#tc4','#tc5'], {
+      .to(['#tc1','#tc2','#tc3','#tc4','#tc5','#tc6'], {
         opacity:1, y:0, duration:.4, stagger:.1, ease:'back.out(1.4)'
       }, '-=.1')
       .to('#s16note', { opacity:1, duration:.4 }, '+=.15');
@@ -965,8 +1045,7 @@ function anim(i) {
       .to('#cq2',    { opacity:1, duration:.5 }, '+=.15')
       .to('#evofin', { opacity:1, duration:.5 }, '+=.2')
       .to('#clast',  { opacity:1, duration:.45 }, '+=.15')
-      .to('#ccard',  { opacity:1, scale:1, duration:.55, ease:'back.out(1.4)' }, '-=.3')
-      .to('#cqr',    { opacity:1, duration:.4 }, '-=.2');
+      .to('#ccard',  { opacity:1, scale:1, duration:.55, ease:'back.out(1.4)' }, '+=.2');
   }
 }
 
