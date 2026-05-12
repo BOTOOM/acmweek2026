@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tu app de IA funciona… hasta que llega la factura — Edwar Díaz | ACM Week 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050510;--surface:rgba(255,255,255,0.04);--border:rgba(255,255,255,0.08);
+  --orange:#f97316;--amber:#f59e0b;--red:#ef4444;--green:#10b981;--indigo:#6366f1;
+  --text:#f0f0f5;--muted:#8b8ba7;
+  --mono:'Space Mono',monospace;--sans:'Space Grotesk',sans-serif;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans);}
+
+/* === DECK === */
+#deck{position:fixed;inset:0;}
+.slide{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:64px 80px;
+  overflow:hidden;visibility:hidden;opacity:0;
+}
+.slide.active{visibility:visible;}
+
+/* === UI CHROME === */
+#progress{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--orange),var(--amber));z-index:100;width:0%;transition:width .35s;}
+#counter{position:fixed;top:18px;right:24px;font-family:var(--mono);font-size:13px;color:var(--muted);z-index:100;letter-spacing:.1em;}
+#back{position:fixed;top:18px;left:24px;z-index:100;}
+#back a{color:var(--muted);text-decoration:none;font-family:var(--mono);font-size:13px;transition:color .2s;}
+#back a:hover{color:var(--text);}
+#dots{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:100;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--muted);cursor:pointer;transition:all .3s;}
+.dot.on{background:var(--orange);width:22px;border-radius:3px;}
+
+/* === TYPOGRAPHY === */
+.mega{font-size:6rem;font-weight:700;line-height:1.05;}
+.huge{font-size:4rem;font-weight:700;line-height:1.1;}
+.big{font-size:2.4rem;font-weight:600;line-height:1.25;}
+.body{font-size:1.25rem;line-height:1.7;}
+.grad{background:linear-gradient(135deg,var(--orange),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.or{color:var(--orange);}.am{color:var(--amber);}.re{color:var(--red);}.gr{color:var(--green);}.mu{color:var(--muted);}
+
+/* === ACT PILL === */
+.act-pill{
+  display:inline-flex;align-items:center;gap:8px;padding:6px 18px;
+  border-radius:100px;font-family:var(--mono);font-size:13px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  background:rgba(249,115,22,.12);border:1px solid var(--orange);color:var(--orange);
+  margin-bottom:20px;
+}
+
+/* === GLASS CARD === */
+.gc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px 28px;}
+
+/* === S1 PORTADA === */
+.hero-grid{display:grid;grid-template-columns:1fr 230px;gap:48px;align-items:center;width:100%;max-width:1200px;}
+.speaker-card{display:flex;flex-direction:column;align-items:center;gap:12px;}
+.avatar{width:120px;height:120px;border-radius:50%;border:3px solid var(--orange);object-fit:cover;box-shadow:0 0 32px rgba(249,115,22,.4);}
+.sp-name{font-size:1rem;font-weight:700;text-align:center;}
+.sp-role{font-size:.75rem;color:var(--muted);font-family:var(--mono);text-align:center;line-height:1.5;}
+.ev-badge{background:rgba(249,115,22,.1);border:1px solid var(--orange);border-radius:100px;padding:4px 14px;font-size:.72rem;font-family:var(--mono);color:var(--orange);}
+.soc-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:4px;}
+.soc{padding:4px 10px;border-radius:100px;background:rgba(255,255,255,.04);border:1px solid var(--border);font-size:.68rem;font-family:var(--mono);color:var(--muted);text-decoration:none;transition:all .2s;}
+.soc:hover{color:var(--text);border-color:var(--orange);}
+
+/* === S3 PHASES === */
+.phases{display:flex;gap:20px;width:100%;max-width:1100px;margin-top:24px;}
+.ph-card{flex:1;padding:24px 20px;border-radius:16px;border:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;gap:10px;}
+.ph-num{font-family:var(--mono);font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
+.ph-emoji{font-size:2rem;}
+.ph-title{font-weight:700;font-size:1.05rem;}
+.ph-body{font-size:.88rem;color:var(--muted);line-height:1.5;}
+.ph1{border-color:rgba(16,185,129,.3);}.ph1 .ph-title{color:var(--green);}
+.ph2{border-color:rgba(245,158,11,.3);}.ph2 .ph-title{color:var(--amber);}
+.ph3{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.04);}.ph3 .ph-title{color:var(--red);}
+
+/* === S5 TOKEN CHIPS === */
+.token-chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:20px 0;}
+.token-chip{padding:10px 18px;border-radius:8px;font-family:var(--mono);font-weight:700;font-size:1.2rem;}
+
+/* === S6 TOKEN TYPES === */
+.ttype-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:100%;max-width:1100px;margin-top:24px;}
+.ttype-card{padding:28px 24px;border-radius:16px;border:1px solid var(--border);}
+.ttype-icon{font-size:2rem;margin-bottom:10px;}
+.ttype-title{font-weight:800;font-size:1.15rem;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;}
+.ttype-body{font-size:.88rem;color:var(--muted);line-height:1.6;}
+.tt-input{border-color:rgba(249,115,22,.4);background:rgba(249,115,22,.05);}.tt-input .ttype-title{color:var(--orange);}
+.tt-output{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.05);}.tt-output .ttype-title{color:var(--amber);}
+.tt-cached{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.05);}.tt-cached .ttype-title{color:var(--green);}
+
+/* === S7 BAR CHART === */
+.bar-chart{display:flex;flex-direction:column;gap:22px;width:100%;max-width:920px;margin-top:24px;}
+.bar-row{display:grid;grid-template-columns:240px 1fr 70px;gap:16px;align-items:center;}
+.bar-label{font-size:.95rem;font-family:var(--mono);color:var(--text);}
+.bar-track{height:38px;background:rgba(255,255,255,.05);border-radius:8px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:8px;width:0;}
+.bar-cost{font-family:var(--mono);font-size:.95rem;font-weight:700;text-align:right;}
+
+/* === S8 TASK GRID === */
+.task-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:900px;margin-top:20px;}
+.task-card{padding:16px 18px;border-radius:12px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:flex-start;gap:14px;}
+.task-mark{font-size:1.4rem;flex-shrink:0;margin-top:2px;}
+.task-text{font-size:.92rem;font-weight:600;line-height:1.4;}
+.task-model{font-family:var(--mono);font-size:.75rem;margin-top:5px;color:var(--muted);}
+
+/* === S10 PRINCIPLES === */
+.princ-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;width:100%;max-width:900px;margin-top:24px;}
+.princ-card{padding:22px 24px;border-radius:14px;border:1px solid var(--border);background:var(--surface);}
+.princ-icon{font-size:1.8rem;margin-bottom:8px;}
+.princ-title{font-weight:700;font-size:1.05rem;color:var(--orange);margin-bottom:6px;}
+.princ-body{font-size:.86rem;color:var(--muted);line-height:1.5;}
+
+/* === S11 PROBLEM CARDS === */
+.prob-list{display:flex;flex-direction:column;gap:11px;width:100%;max-width:950px;margin-top:16px;}
+.prob-card{padding:14px 20px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:flex-start;gap:14px;border-left:3px solid var(--red);}
+.prob-icon{font-size:1.5rem;flex-shrink:0;}
+.prob-title{font-weight:700;font-size:.95rem;margin-bottom:3px;}
+.prob-body{font-size:.82rem;color:var(--muted);line-height:1.4;}
+
+/* === S13 METRICS === */
+.metric-cloud{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:28px;max-width:1000px;}
+.metric-chip{padding:11px 20px;border-radius:100px;font-family:var(--mono);font-size:.95rem;font-weight:700;border:1px solid;}
+
+/* === S14 MATH === */
+.math-seq{display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;}
+.math-step{opacity:0;}
+.counter15k-wrap{font-family:var(--mono);font-weight:900;color:var(--orange);opacity:0;}
+
+/* === S15 TWO-COL === */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:28px;width:100%;max-width:1100px;margin-top:24px;}
+.fore-col{padding:26px 24px;border-radius:16px;border:1px solid var(--border);background:var(--surface);}
+.fore-icon{font-size:2rem;margin-bottom:10px;}
+.fore-title{font-weight:700;font-size:1.1rem;margin-bottom:12px;}
+.fore-list{list-style:none;display:flex;flex-direction:column;gap:9px;}
+.fore-list li{font-size:.88rem;color:var(--muted);padding-left:18px;position:relative;line-height:1.4;}
+.fore-list li::before{content:'→';position:absolute;left:0;color:var(--orange);}
+
+/* === S16 CACHE CARDS === */
+.cache-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;width:100%;max-width:1000px;margin-top:24px;}
+.cache-card{padding:28px 26px;border-radius:18px;border:1px solid var(--border);background:var(--surface);}
+.cache-icon{font-size:2.6rem;margin-bottom:14px;}
+.cache-title{font-weight:800;font-size:1.25rem;color:var(--orange);margin-bottom:10px;}
+.cache-body{font-size:.9rem;color:var(--muted);line-height:1.6;}
+.cache-note{font-family:var(--mono);font-size:.78rem;color:var(--amber);margin-top:10px;padding:7px 12px;background:rgba(245,158,11,.05);border-radius:6px;border:1px solid rgba(245,158,11,.15);}
+
+/* === S17 FRASES === */
+.frases-list{display:flex;flex-direction:column;gap:14px;width:100%;max-width:980px;margin-top:20px;}
+.frase{padding:16px 22px;border-radius:12px;background:var(--surface);border-left:4px solid var(--orange);font-size:1.1rem;font-weight:600;line-height:1.5;}
+
+/* === S18 CLOSE === */
+.close-quotes{display:flex;flex-direction:column;gap:14px;width:100%;max-width:1000px;}
+.cquote{font-size:1.2rem;line-height:1.65;padding:16px 22px;border-radius:12px;background:var(--surface);border:1px solid var(--border);}
+.speaker-close{display:flex;align-items:center;gap:22px;padding:18px 26px;border-radius:16px;background:var(--surface);border:1px solid var(--border);width:100%;max-width:720px;margin-top:16px;}
+.av-close{width:76px;height:76px;border-radius:50%;border:3px solid var(--orange);flex-shrink:0;object-fit:cover;}
+.sc-name{font-weight:700;font-size:1.05rem;}
+.sc-role{font-family:var(--mono);font-size:.78rem;color:var(--muted);margin-top:3px;}
+
+/* background particles */
+#pbg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.3;}
+
+/* ── AUDITORIUM FONT OVERRIDES ── */
+.mega{font-size:8rem!important;line-height:1.05!important;}
+.huge{font-size:5rem!important;line-height:1.1!important;}
+.big{font-size:3.2rem!important;line-height:1.25!important;}
+.body{font-size:1.8rem!important;line-height:1.7!important;}
+.act-pill{font-size:1.05rem!important;padding:8px 22px!important;letter-spacing:.1em!important;}
+.tc-n{font-size:1.6rem!important;}.tc-d{font-size:1.2rem!important;}
+.ph-title{font-size:1.45rem!important;}.ph-body{font-size:1.1rem!important;}
+.ph-num{font-size:.9rem!important;}.ph-emoji{font-size:2.6rem!important;}
+.ttype-title{font-size:1.45rem!important;}.ttype-body{font-size:1.1rem!important;}
+.ttype-icon{font-size:2.5rem!important;}
+.bar-label{font-size:1.2rem!important;}.bar-cost{font-size:1.1rem!important;}
+.bar-row{grid-template-columns:260px 1fr 80px!important;}
+.task-text{font-size:1.1rem!important;}.task-model{font-size:.92rem!important;}
+.task-mark{font-size:1.7rem!important;}
+.princ-title{font-size:1.35rem!important;}.princ-body{font-size:1.05rem!important;}
+.princ-icon{font-size:2.2rem!important;}
+.prob-title{font-size:1.15rem!important;}.prob-body{font-size:1rem!important;}
+.prob-icon{font-size:1.8rem!important;}
+.metric-chip{font-size:1.1rem!important;padding:13px 22px!important;}
+.token-chip{font-size:1.45rem!important;padding:12px 22px!important;}
+.frase{font-size:1.45rem!important;padding:18px 26px!important;}
+.cquote{font-size:1.45rem!important;}
+.sc-name{font-size:1.35rem!important;}.sc-role{font-size:.95rem!important;}
+.fore-title{font-size:1.45rem!important;}.fore-list li{font-size:1.1rem!important;}
+.cache-title{font-size:1.55rem!important;}.cache-body{font-size:1.1rem!important;}
+.cache-note{font-size:.95rem!important;}
+.counter15k-wrap{font-size:6rem!important;}
+.math-step{font-size:1.9rem!important;}
+.soc{font-size:.88rem!important;padding:5px 14px!important;}
+.sp-name{font-size:1.25rem!important;}.sp-role{font-size:.9rem!important;}
+.ev-badge{font-size:.88rem!important;padding:5px 16px!important;}
+</style>
+</head>
+<body>
+<canvas id="pbg"></canvas>
+<div id="progress"></div>
+<div id="counter">1 / 18</div>
+<div id="back"><a href="../../index.html">← Inicio</a></div>
+<div id="dots"></div>
+
+<div id="deck">
+
+<!-- ═══ S1 — PORTADA ═══ -->
+<section class="slide active" id="s1">
+  <div class="hero-grid">
+    <div>
+      <div id="s1-badge" style="opacity:0">
+        <span class="act-pill">🎙️ ACM Week 2026</span>
+      </div>
+      <h1 id="s1-h1" style="opacity:0;margin-top:14px;font-size:8rem;font-weight:700;line-height:1.05;background:linear-gradient(135deg,#f97316,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+        Tu app de IA funciona…
+      </h1>
+      <h2 id="s1-h2" style="opacity:0;margin-top:10px;font-size:4rem;font-weight:700;color:var(--red);line-height:1.1;">
+        hasta que llega la factura
+      </h2>
+      <p id="s1-sub" style="opacity:0;margin-top:18px;font-size:1.8rem;color:var(--muted);font-family:var(--mono);">
+        Tokens · Costos · Observabilidad · Decisiones
+      </p>
+      <div id="s1-tags" style="display:flex;gap:10px;margin-top:28px;flex-wrap:wrap;opacity:0">
+        <span style="font-family:var(--mono);font-size:.9rem;color:var(--orange);padding:6px 14px;border-radius:6px;background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.3)">#Tokens</span>
+        <span style="font-family:var(--mono);font-size:.9rem;color:var(--amber);padding:6px 14px;border-radius:6px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3)">#AIFinOps</span>
+        <span style="font-family:var(--mono);font-size:.9rem;color:var(--muted);padding:6px 14px;border-radius:6px;background:var(--surface);border:1px solid var(--border)">#Observabilidad</span>
+        <span style="font-family:var(--mono);font-size:.9rem;color:var(--muted);padding:6px 14px;border-radius:6px;background:var(--surface);border:1px solid var(--border)">#ModelRouting</span>
+      </div>
+    </div>
+    <div class="speaker-card" id="s1-sp" style="opacity:0">
+      <img class="avatar" src="https://avatars.githubusercontent.com/u/28914781?v=4" alt="Edwar Díaz"
+        onerror="this.outerHTML='<div class=\'avatar\' style=\'background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:700;color:#fff\'>ED</div>'">
+      <div class="sp-name">Edwar Díaz</div>
+      <div class="sp-role">AI-First Engineer &amp; Speaker<br>ACM Week 2026</div>
+      <div class="ev-badge">edwardiaz.dev</div>
+      <div class="soc-row">
+        <a href="https://github.com/BOTOOM" target="_blank" class="soc">GitHub</a>
+        <a href="https://edwardiaz.dev" target="_blank" class="soc">Portfolio</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S2 — ACTO 1: EL DEMO PERFECTO ═══ -->
+<section class="slide" id="s2">
+  <div style="text-align:center;max-width:960px">
+    <div id="s2-pill" style="opacity:0"><span class="act-pill">⚡ ACTO 1 — El Demo Perfecto</span></div>
+    <p class="big" id="s2-t1" style="opacity:0;margin-bottom:24px">
+      Hoy crear una app con IA es <span class="or">absurdamente fácil.</span>
+    </p>
+    <div id="s2-demos" style="opacity:0;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:20px 0">
+      <span style="padding:8px 20px;border-radius:100px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);font-family:var(--mono);font-size:1.05rem">Chatbot</span>
+      <span style="padding:8px 20px;border-radius:100px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);font-family:var(--mono);font-size:1.05rem">WhatsApp Bot</span>
+      <span style="padding:8px 20px;border-radius:100px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);font-family:var(--mono);font-size:1.05rem">Generador de Reportes</span>
+      <span style="padding:8px 20px;border-radius:100px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);font-family:var(--mono);font-size:1.05rem">AI Agents</span>
+      <span style="padding:8px 20px;border-radius:100px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);font-family:var(--mono);font-size:1.05rem">Resumidores</span>
+      <span style="padding:8px 20px;border-radius:100px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.3);font-family:var(--mono);font-size:1.05rem">Clasificadores</span>
+    </div>
+    <p class="big mu" id="s2-t2" style="opacity:0;margin:24px 0;font-style:italic">
+      El problema es que <em>casi todas las demos funcionan.</em>
+    </p>
+    <h2 id="s2-t3" style="opacity:0;margin-top:14px;font-size:5rem;font-weight:900;color:var(--red);line-height:1.1">
+      Hasta que llega la factura. 🧾
+    </h2>
+  </div>
+</section>
+
+<!-- ═══ S3 — LAS 3 FASES ═══ -->
+<section class="slide" id="s3">
+  <div style="text-align:center;width:100%;max-width:1150px">
+    <h2 class="big" id="s3-title" style="opacity:0;margin-bottom:8px">La historia que <span class="grad">todos vivimos</span></h2>
+    <div class="phases">
+      <div class="ph-card ph1" id="s3-p1" style="opacity:0">
+        <div class="ph-num">Fase 1</div>
+        <div class="ph-emoji">🎉</div>
+        <div class="ph-title">El demo perfecto</div>
+        <div class="ph-body">Todo funciona. 10 mensajes. 1 usuario. "Esto va a cambiar el mundo."</div>
+      </div>
+      <div class="ph-card ph2" id="s3-p2" style="opacity:0">
+        <div class="ph-num">Fase 2</div>
+        <div class="ph-emoji">🧪</div>
+        <div class="ph-title">El developer test</div>
+        <div class="ph-body">20 requests. Tráfico mínimo. "No consume tanto… creo que está bien."</div>
+      </div>
+      <div class="ph-card ph3" id="s3-p3" style="opacity:0">
+        <div class="ph-num">Fase 3</div>
+        <div class="ph-emoji">💥</div>
+        <div class="ph-title">Producción</div>
+        <div class="ph-body">Cientos de usuarios. Retries. Contexto acumulado. Imágenes. Concurrencia real.</div>
+      </div>
+    </div>
+    <div id="s3-boom" style="opacity:0;margin-top:24px;padding:18px 32px;background:rgba(239,68,68,.07);border:2px solid rgba(239,68,68,.4);border-radius:14px">
+      <span style="font-size:4rem;font-weight:900;color:var(--red)">BOOM.</span>
+      <span style="font-size:4rem;font-weight:900;color:var(--text)"> Llega la factura.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S4 — ACTO 2: EL GRAN ERROR ═══ -->
+<section class="slide" id="s4">
+  <div style="text-align:center;max-width:900px">
+    <div id="s4-pill" style="opacity:0"><span class="act-pill">🚨 ACTO 2 — El Gran Error</span></div>
+    <div style="margin-top:20px">
+      <p class="big mu" id="s4-l1" style="opacity:0">La mayoría de personas optimiza...</p>
+      <div id="s4-l2" style="opacity:0;margin:16px 0;font-size:5rem;font-weight:900;line-height:1;background:linear-gradient(135deg,#f97316,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">PRECISIÓN</div>
+      <p class="big mu" id="s4-l3" style="opacity:0">...pero olvida optimizar...</p>
+      <div id="s4-l4" style="opacity:0;margin:16px 0;font-size:5rem;font-weight:900;color:var(--red);line-height:1">COSTO</div>
+    </div>
+    <blockquote id="s4-quote" style="opacity:0;margin-top:28px;padding:20px 28px;border-left:4px solid var(--orange);background:rgba(249,115,22,.05);border-radius:0 12px 12px 0;text-align:left">
+      <p style="font-size:1.5rem;font-style:italic;color:var(--muted);line-height:1.6">
+        "Muchos productos con IA son <span class="or">técnicamente impresionantes</span>…<br>
+        y <span class="re">financieramente inviables.</span>"
+      </p>
+    </blockquote>
+  </div>
+</section>
+
+<!-- ═══ S5 — ¿QUÉ SON LOS TOKENS? ═══ -->
+<section class="slide" id="s5">
+  <div style="text-align:center;max-width:1000px">
+    <div id="s5-pill" style="opacity:0"><span class="act-pill">🔤 ACTO 3 — Tokens</span></div>
+    <h2 class="big" id="s5-title" style="opacity:0;margin-bottom:16px">Los modelos no leen texto <span class="re">como tú</span></h2>
+    <p id="s5-sent" style="opacity:0;font-family:var(--mono);font-size:1.8rem;font-weight:600;color:var(--muted);margin-bottom:8px">
+      "Hola mundo ¿cómo estás?"
+    </p>
+    <div class="token-chips" id="s5-chips">
+      <span class="token-chip" style="background:rgba(249,115,22,.15);border:2px solid #f97316;color:#f97316">Ho</span>
+      <span class="token-chip" style="background:rgba(245,158,11,.15);border:2px solid #f59e0b;color:#f59e0b">la</span>
+      <span class="token-chip" style="background:rgba(16,185,129,.15);border:2px solid #10b981;color:#10b981"> mun</span>
+      <span class="token-chip" style="background:rgba(99,102,241,.15);border:2px solid #6366f1;color:#818cf8">do</span>
+      <span class="token-chip" style="background:rgba(236,72,153,.15);border:2px solid #ec4899;color:#f472b6"> ¿</span>
+      <span class="token-chip" style="background:rgba(6,182,212,.15);border:2px solid #06b6d4;color:#22d3ee">cómo</span>
+      <span class="token-chip" style="background:rgba(239,68,68,.15);border:2px solid #ef4444;color:#f87171"> estás</span>
+      <span class="token-chip" style="background:rgba(234,179,8,.15);border:2px solid #eab308;color:#facc15">?</span>
+    </div>
+    <p id="s5-ins1" style="opacity:0;font-size:1.8rem;color:var(--muted);margin-top:20px">
+      Mientras más tokens envías… <strong class="or">más pagas.</strong>
+    </p>
+    <div id="s5-ins2" style="opacity:0;margin-top:16px;display:flex;gap:24px;justify-content:center">
+      <span style="padding:14px 24px;border-radius:10px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);font-size:1.2rem;font-weight:700;font-family:var(--mono)">📥 Pagas por lo que <span class="or">ENTRA</span></span>
+      <span style="padding:14px 24px;border-radius:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);font-size:1.2rem;font-weight:700;font-family:var(--mono)">📤 Pagas por lo que <span class="re">SALE</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S6 — TOKEN TYPES ═══ -->
+<section class="slide" id="s6">
+  <div style="text-align:center;width:100%;max-width:1100px">
+    <h2 class="big" id="s6-title" style="opacity:0;margin-bottom:4px">Tres tipos de tokens. <span class="grad">Tres precios.</span></h2>
+    <div class="ttype-grid">
+      <div class="ttype-card tt-input" id="s6-c1" style="opacity:0">
+        <div class="ttype-icon">📥</div>
+        <div class="ttype-title">INPUT TOKENS</div>
+        <div class="ttype-body">Lo que tú mandas al modelo.<br>System prompt + historial + pregunta del usuario.</div>
+      </div>
+      <div class="ttype-card tt-output" id="s6-c2" style="opacity:0">
+        <div class="ttype-icon">📤</div>
+        <div class="ttype-title">OUTPUT TOKENS</div>
+        <div class="ttype-body">Lo que el modelo responde.<br><strong style="color:var(--amber)">Más costoso por token</strong> que el input en la mayoría de proveedores.</div>
+      </div>
+      <div class="ttype-card tt-cached" id="s6-c3" style="opacity:0">
+        <div class="ttype-icon">♻️</div>
+        <div class="ttype-title">CACHED TOKENS</div>
+        <div class="ttype-body">Contexto reutilizado por el proveedor.<br><strong style="color:var(--green)">Hasta 90% más barato.</strong> El oro oculto del costo.</div>
+      </div>
+    </div>
+    <div id="s6-quote" style="opacity:0;margin-top:22px;padding:14px 26px;background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-radius:10px">
+      <span style="font-size:1.3rem;font-style:italic;color:var(--muted)">"El mismo prompt puede costar diferente según el proveedor — y según el modelo."</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S7 — PROVIDERS COMPARISON ═══ -->
+<section class="slide" id="s7">
+  <div style="width:100%;max-width:1000px">
+    <div id="s7-pill" style="opacity:0"><span class="act-pill">📊 Comparativa de Modelos</span></div>
+    <h2 class="big" id="s7-title" style="opacity:0;margin-bottom:8px">El mismo texto. <span class="re">Diferente precio.</span></h2>
+    <div class="bar-chart">
+      <div class="bar-row" id="s7-r1" style="opacity:0">
+        <div class="bar-label">GPT-4o (OpenAI)</div>
+        <div class="bar-track"><div class="bar-fill" id="s7-b1" data-w="82" style="background:linear-gradient(90deg,#f97316,#f59e0b)"></div></div>
+        <div class="bar-cost or">$$$</div>
+      </div>
+      <div class="bar-row" id="s7-r2" style="opacity:0">
+        <div class="bar-label">Claude 3.5 Sonnet</div>
+        <div class="bar-track"><div class="bar-fill" id="s7-b2" data-w="66" style="background:linear-gradient(90deg,#6366f1,#8b5cf6)"></div></div>
+        <div class="bar-cost" style="color:#818cf8">$$</div>
+      </div>
+      <div class="bar-row" id="s7-r3" style="opacity:0">
+        <div class="bar-label">Gemini 1.5 Pro</div>
+        <div class="bar-track"><div class="bar-fill" id="s7-b3" data-w="46" style="background:linear-gradient(90deg,#06b6d4,#10b981)"></div></div>
+        <div class="bar-cost gr">$</div>
+      </div>
+      <div class="bar-row" id="s7-r4" style="opacity:0">
+        <div class="bar-label">Llama 3 (local)</div>
+        <div class="bar-track"><div class="bar-fill" id="s7-b4" data-w="16" style="background:linear-gradient(90deg,#6b7280,#8b8ba7)"></div></div>
+        <div class="bar-cost mu">~$0</div>
+      </div>
+    </div>
+    <p id="s7-caption" style="opacity:0;margin-top:22px;font-family:var(--mono);font-size:1.05rem;color:var(--muted);text-align:center">
+      Tokenización distinta. Precios distintos. <span class="or">Mismo resultado.</span>
+    </p>
+  </div>
+</section>
+
+<!-- ═══ S8 — ACTO 4: EL MODELO INCORRECTO ═══ -->
+<section class="slide" id="s8">
+  <div style="text-align:center;max-width:1050px">
+    <div id="s8-pill" style="opacity:0"><span class="act-pill">🚗 ACTO 4 — El Modelo Incorrecto</span></div>
+    <h2 class="big" id="s8-h2" style="opacity:0;margin:16px 0">
+      No todo necesita el modelo <span class="or">más inteligente del planeta.</span>
+    </h2>
+    <blockquote id="s8-ferrari" style="opacity:0;margin:18px 0;padding:18px 26px;background:rgba(249,115,22,.05);border-left:4px solid var(--orange);border-radius:0 12px 12px 0;text-align:left">
+      <p style="font-size:1.5rem;font-style:italic;color:var(--text);line-height:1.55">
+        "Usar GPT-4o para clasificar comentarios positivos es como usar un <span class="or">Ferrari para ir por pan</span>."
+      </p>
+    </blockquote>
+    <div class="task-grid">
+      <div class="task-card" id="s8-t1" style="opacity:0;border-color:rgba(239,68,68,.3)">
+        <span class="task-mark">❌</span>
+        <div>
+          <div class="task-text">Clasificar sentimientos</div>
+          <div class="task-model" style="color:var(--red)">GPT-4o → overkill y carísimo</div>
+        </div>
+      </div>
+      <div class="task-card" id="s8-t2" style="opacity:0;border-color:rgba(239,68,68,.3)">
+        <span class="task-mark">❌</span>
+        <div>
+          <div class="task-text">Extraer JSON estructurado</div>
+          <div class="task-model" style="color:var(--red)">Reasoning avanzado → completamente innecesario</div>
+        </div>
+      </div>
+      <div class="task-card" id="s8-t3" style="opacity:0;border-color:rgba(239,68,68,.3)">
+        <span class="task-mark">❌</span>
+        <div>
+          <div class="task-text">Moderar comentarios</div>
+          <div class="task-model" style="color:var(--red)">Modelo premium → desperdicio de recursos</div>
+        </div>
+      </div>
+      <div class="task-card" id="s8-t4" style="opacity:0;border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.04)">
+        <span class="task-mark">✅</span>
+        <div>
+          <div class="task-text" style="color:var(--green)">Chat médico complejo</div>
+          <div class="task-model" style="color:var(--green)">Ahí sí vale el costo del modelo grande</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S9 — MODEL ROUTING ═══ -->
+<section class="slide" id="s9">
+  <div style="width:100%;max-width:900px;text-align:center">
+    <div id="s9-pill" style="opacity:0"><span class="act-pill">🔀 Model Routing — La Solución</span></div>
+    <h2 class="big" id="s9-title" style="opacity:0;margin-bottom:20px">No todas las tareas van al <span class="re">mismo modelo.</span></h2>
+    <svg id="s9-svg" viewBox="0 0 700 310" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:700px;height:auto">
+      <!-- REQUEST -->
+      <rect id="r-req" x="255" y="8" width="190" height="52" rx="10" fill="rgba(249,115,22,0.12)" stroke="#f97316" stroke-width="2" opacity="0"/>
+      <text id="t-req" x="350" y="40" text-anchor="middle" fill="#f97316" font-family="'Space Mono',monospace" font-size="18" font-weight="700" opacity="0">REQUEST</text>
+      <!-- Down arrow -->
+      <path id="p-arr1" d="M350 60 L350 100" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <polygon id="h-arr1" points="342,92 350,108 358,92" fill="#f97316" opacity="0"/>
+      <!-- ROUTER -->
+      <rect id="r-router" x="235" y="108" width="230" height="54" rx="10" fill="rgba(245,158,11,0.12)" stroke="#f59e0b" stroke-width="2" opacity="0"/>
+      <text id="t-router" x="350" y="141" text-anchor="middle" fill="#f59e0b" font-family="'Space Mono',monospace" font-size="17" font-weight="700" opacity="0">🔀 ROUTER</text>
+      <!-- Left branch -->
+      <path id="p-arr2" d="M285 162 L135 210" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <polygon id="h-arr2" points="125,205 130,222 144,210" fill="#10b981" opacity="0"/>
+      <!-- Right branch -->
+      <path id="p-arr3" d="M415 162 L565 210" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <polygon id="h-arr3" points="556,210 570,222 575,206" fill="#6366f1" opacity="0"/>
+      <!-- Small model -->
+      <rect id="r-sm" x="30" y="218" width="205" height="58" rx="10" fill="rgba(16,185,129,0.08)" stroke="#10b981" stroke-width="2" opacity="0"/>
+      <text id="t-sm1" x="133" y="244" text-anchor="middle" fill="#10b981" font-family="'Space Mono',monospace" font-size="13" font-weight="700" opacity="0">Modelo Pequeño</text>
+      <text id="t-sm2" x="133" y="264" text-anchor="middle" fill="#6ee7b7" font-family="'Space Grotesk',sans-serif" font-size="11" opacity="0">rápido · barato · eficiente</text>
+      <!-- Large model -->
+      <rect id="r-lg" x="465" y="218" width="205" height="58" rx="10" fill="rgba(99,102,241,0.08)" stroke="#6366f1" stroke-width="2" opacity="0"/>
+      <text id="t-lg1" x="568" y="244" text-anchor="middle" fill="#818cf8" font-family="'Space Mono',monospace" font-size="13" font-weight="700" opacity="0">Modelo Grande</text>
+      <text id="t-lg2" x="568" y="264" text-anchor="middle" fill="#a5b4fc" font-family="'Space Grotesk',sans-serif" font-size="11" opacity="0">complejo · profundo · capaz</text>
+      <!-- Labels -->
+      <text id="lb1" x="133" y="296" text-anchor="middle" fill="#8b8ba7" font-family="'Space Grotesk',sans-serif" font-size="10" opacity="0">Clasificar · parsear · validar</text>
+      <text id="lb2" x="568" y="296" text-anchor="middle" fill="#8b8ba7" font-family="'Space Grotesk',sans-serif" font-size="10" opacity="0">Razonar · analizar · decidir</text>
+    </svg>
+    <p id="s9-key" style="opacity:0;margin-top:12px;font-family:var(--mono);font-size:1.1rem;color:var(--muted)">
+      💡 "No todas las tareas deben ir al <span class="or">mismo modelo</span> — y no deberían."
+    </p>
+  </div>
+</section>
+
+<!-- ═══ S10 — ACTO 5: INGENIERÍA DE COSTO ═══ -->
+<section class="slide" id="s10">
+  <div style="text-align:center;max-width:1000px">
+    <div id="s10-pill" style="opacity:0"><span class="act-pill">⚙️ ACTO 5 — Ingeniería de Costo</span></div>
+    <h2 class="big" id="s10-h2" style="opacity:0;margin:16px 0">La IA también requiere <span class="or">OPTIMIZACIÓN</span>.</h2>
+    <p id="s10-sub" style="opacity:0;margin-bottom:18px;font-size:1.6rem;color:var(--muted);font-style:italic">
+      Prompt Engineering desde ingeniería, <em>no desde humo.</em>
+    </p>
+    <div class="princ-grid">
+      <div class="princ-card" id="s10-p1" style="opacity:0">
+        <div class="princ-icon">🎯</div>
+        <div class="princ-title">Claridad</div>
+        <div class="princ-body">Elimina ambigüedad. Un prompt claro genera tokens de calidad, no tokens de ruido.</div>
+      </div>
+      <div class="princ-card" id="s10-p2" style="opacity:0">
+        <div class="princ-icon">🗜️</div>
+        <div class="princ-title">Compresión</div>
+        <div class="princ-body">Solo el contexto necesario. Sin repeticiones, sin datos irrelevantes, sin padding.</div>
+      </div>
+      <div class="princ-card" id="s10-p3" style="opacity:0">
+        <div class="princ-icon">🏗️</div>
+        <div class="princ-title">Estructura</div>
+        <div class="princ-body">Formato eficiente. JSON conciso, listas cortas, instrucciones directas sin relleno.</div>
+      </div>
+      <div class="princ-card" id="s10-p4" style="opacity:0">
+        <div class="princ-icon">♻️</div>
+        <div class="princ-title">Reutilización</div>
+        <div class="princ-body">Cached tokens. El system prompt estático debería estar en caché siempre.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S11 — PROBLEMAS COMUNES ═══ -->
+<section class="slide" id="s11" style="padding:48px 80px">
+  <div style="width:100%;max-width:960px">
+    <h2 class="big" id="s11-title" style="opacity:0;text-align:center;margin-bottom:12px">Los errores que <span class="re">queman dinero</span></h2>
+    <div class="prob-list">
+      <div class="prob-card" id="s11-p1" style="opacity:0">
+        <div class="prob-icon">🗃️</div>
+        <div>
+          <div class="prob-title">Historial completo innecesario</div>
+          <div class="prob-body">Mandas toda la conversación cada vez. 40 mensajes de historial = 40× el costo base.</div>
+        </div>
+      </div>
+      <div class="prob-card" id="s11-p2" style="opacity:0">
+        <div class="prob-icon">📦</div>
+        <div>
+          <div class="prob-title">JSON gigantes como contexto</div>
+          <div class="prob-body">Payloads enormes con campos irrelevantes. Solo manda lo que el modelo realmente necesita.</div>
+        </div>
+      </div>
+      <div class="prob-card" id="s11-p3" style="opacity:0">
+        <div class="prob-icon">🖼️</div>
+        <div>
+          <div class="prob-title">Imágenes Base64 enormes</div>
+          <div class="prob-body">Imágenes en texto plano al modelo. Una foto de 2MB = miles de tokens de imagen.</div>
+        </div>
+      </div>
+      <div class="prob-card" id="s11-p4" style="opacity:0">
+        <div class="prob-icon">📜</div>
+        <div>
+          <div class="prob-title">System prompts kilométricos</div>
+          <div class="prob-body">Instrucciones redundantes, ejemplos repetidos, reglas que ya son el default del modelo.</div>
+        </div>
+      </div>
+      <div class="prob-card" id="s11-p5" style="opacity:0">
+        <div class="prob-icon">🔍</div>
+        <div>
+          <div class="prob-title">RAG mal optimizado</div>
+          <div class="prob-body">20 documentos recuperados, chunks enormes, embeddings inútiles. Contexto que no aporta nada.</div>
+        </div>
+      </div>
+    </div>
+    <p id="s11-quote" style="opacity:0;margin-top:14px;text-align:center;font-family:var(--mono);font-size:1.05rem;color:var(--red)">
+      "Cada uno de estos errores <strong>multiplica tu factura</strong>."
+    </p>
+  </div>
+</section>
+
+<!-- ═══ S12 — ACTO 6: OBSERVABILIDAD ═══ -->
+<section class="slide" id="s12">
+  <div style="text-align:center;max-width:920px">
+    <div id="s12-pill" style="opacity:0"><span class="act-pill">👁️ ACTO 6 — Observabilidad</span></div>
+    <div style="margin:24px 0">
+      <p class="big mu" id="s12-l1" style="opacity:0">Si no mides tokens…</p>
+      <p class="big mu" id="s12-l2" style="opacity:0;margin-top:10px">…no estás <em>operando</em> una app de IA.</p>
+      <div id="s12-l3" style="opacity:0;margin:28px 0;font-size:5rem;font-weight:900;color:var(--red)">Estás apostando. 🎰</div>
+    </div>
+    <div id="s12-pivot" style="opacity:0;padding:24px 36px;background:rgba(249,115,22,.06);border:2px solid rgba(249,115,22,.3);border-radius:16px">
+      <p style="font-size:2.6rem;font-weight:700;color:var(--orange);line-height:1.3">
+        Observabilidad de tokens<br>= Observabilidad financiera.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S13 — MÉTRICAS QUE IMPORTAN ═══ -->
+<section class="slide" id="s13">
+  <div style="text-align:center;max-width:1000px">
+    <h2 class="big" id="s13-title" style="opacity:0;margin-bottom:8px">Lo que debes <span class="grad">medir</span></h2>
+    <div class="metric-cloud">
+      <span class="metric-chip" style="border-color:rgba(249,115,22,.4);color:var(--orange);background:rgba(249,115,22,.08);opacity:0">input tokens / req</span>
+      <span class="metric-chip" style="border-color:rgba(245,158,11,.4);color:var(--amber);background:rgba(245,158,11,.08);opacity:0">output tokens / req</span>
+      <span class="metric-chip" style="border-color:rgba(16,185,129,.4);color:var(--green);background:rgba(16,185,129,.08);opacity:0">cached tokens %</span>
+      <span class="metric-chip" style="border-color:rgba(239,68,68,.4);color:var(--red);background:rgba(239,68,68,.08);opacity:0">costo / request</span>
+      <span class="metric-chip" style="border-color:rgba(249,115,22,.4);color:var(--orange);background:rgba(249,115,22,.08);opacity:0">costo promedio / usuario</span>
+      <span class="metric-chip" style="border-color:rgba(99,102,241,.4);color:#818cf8;background:rgba(99,102,241,.08);opacity:0">costo / conversación</span>
+      <span class="metric-chip" style="border-color:rgba(6,182,212,.4);color:#22d3ee;background:rgba(6,182,212,.08);opacity:0">costo / workflow</span>
+      <span class="metric-chip" style="border-color:rgba(245,158,11,.4);color:var(--amber);background:rgba(245,158,11,.08);opacity:0">requests / min · day</span>
+      <span class="metric-chip" style="border-color:rgba(139,139,167,.4);color:var(--muted);background:rgba(139,139,167,.05);opacity:0">latencia P99</span>
+    </div>
+    <div id="s13-note" style="opacity:0;margin-top:22px;padding:14px 26px;background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-radius:10px">
+      <span style="font-family:var(--mono);font-size:1.05rem;color:var(--orange)">
+        📊 LangSmith · Helicone · Braintrust · OpenTelemetry + custom spans
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S14 — LA FACTURA ($15,000) ═══ -->
+<section class="slide" id="s14">
+  <div style="text-align:center;max-width:860px">
+    <h2 class="big" id="s14-title" style="opacity:0;margin-bottom:28px">El ejemplo que <span class="re">nadie calcula</span></h2>
+    <div class="math-seq">
+      <div class="math-step" id="s14-s1">
+        <span style="font-size:5rem;font-weight:900;color:var(--orange);font-family:var(--mono)">$1</span>
+        <span style="font-size:1.9rem;color:var(--muted)"> por conversación</span>
+      </div>
+      <div class="math-step" id="s14-s2">
+        <span style="font-size:2.8rem;color:var(--muted)">×</span>
+        <span style="font-size:5rem;font-weight:900;color:var(--amber);font-family:var(--mono)"> 500</span>
+        <span style="font-size:1.9rem;color:var(--muted)"> usuarios diarios</span>
+      </div>
+      <div class="math-step" id="s14-s3">
+        <span style="font-size:2.8rem;color:var(--muted)">×</span>
+        <span style="font-size:5rem;font-weight:900;color:var(--muted);font-family:var(--mono)"> 30</span>
+        <span style="font-size:1.9rem;color:var(--muted)"> días</span>
+      </div>
+      <div id="s14-eq" style="opacity:0;margin-top:10px">
+        <div style="font-size:2.8rem;color:var(--muted);margin-bottom:6px">= 💸</div>
+        <div class="counter15k-wrap">
+          <span id="counter15k">$0</span><span style="font-size:3rem;color:var(--amber)">/mes</span>
+        </div>
+      </div>
+    </div>
+    <p id="s14-question" style="opacity:0;margin-top:22px;font-size:1.9rem;font-weight:700;color:var(--red)">
+      ¿Tu negocio puede sobrevivir eso? 🤔
+    </p>
+  </div>
+</section>
+
+<!-- ═══ S15 — FORECASTING + CONTEXT ENGINEERING ═══ -->
+<section class="slide" id="s15">
+  <div style="width:100%;max-width:1100px">
+    <h2 class="big" id="s15-title" style="opacity:0;text-align:center;margin-bottom:8px">Antes de lanzar. <span class="grad">Antes de escalar.</span></h2>
+    <div class="two-col">
+      <div class="fore-col" id="s15-c1" style="opacity:0">
+        <div class="fore-icon">📈</div>
+        <div class="fore-title" style="color:var(--orange)">Forecasting de Costos</div>
+        <ul class="fore-list">
+          <li>¿Cuánto cuesta atender 1 usuario por día?</li>
+          <li>¿Cuánto cuesta 1 automatización completa?</li>
+          <li>¿Cómo escala el costo al 10× usuarios?</li>
+          <li>¿Dónde está tu punto de break-even?</li>
+        </ul>
+      </div>
+      <div class="fore-col" id="s15-c2" style="opacity:0;border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.03)">
+        <div class="fore-icon">🧠</div>
+        <div class="fore-title" style="color:var(--amber)">Context Engineering</div>
+        <p style="font-size:.95rem;color:var(--muted);margin-bottom:12px;font-style:italic;line-height:1.5">
+          "Ya no es <span class="or">'cómo escribir el prompt'</span>.<br>
+          Es <span class="am">'qué contexto darle, cuándo y cuánto.'</span>"
+        </p>
+        <p style="font-size:.9rem;color:var(--text);line-height:1.5;padding:10px 14px;background:rgba(245,158,11,.06);border-radius:8px;border:1px solid rgba(245,158,11,.2)">
+          "El modelo importa. Pero el <strong>contexto</strong> que le das <span class="or">importa más</span>."
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S16 — CACHING + SLMs ═══ -->
+<section class="slide" id="s16">
+  <div style="text-align:center;max-width:1000px">
+    <h2 class="big" id="s16-title" style="opacity:0;margin-bottom:8px">Optimizaciones que <span class="grad">marcan la diferencia</span></h2>
+    <div class="cache-grid">
+      <div class="cache-card" id="s16-c1" style="opacity:0">
+        <div class="cache-icon">🗄️</div>
+        <div class="cache-title">Caching</div>
+        <div class="cache-body">
+          Semantic caching, prompt caching y response caching.<br>
+          Hasta <strong style="color:var(--green)">90% de reducción</strong> en tokens repetidos.
+        </div>
+        <div class="cache-note">System prompts estáticos → siempre en caché</div>
+      </div>
+      <div class="cache-card" id="s16-c2" style="opacity:0;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.03)">
+        <div class="cache-icon">🤏</div>
+        <div class="cache-title" style="color:var(--amber)">Small Language Models</div>
+        <div class="cache-body">
+          Para tareas simples, modelos pequeños = costo mínimo.<br>
+          <strong style="color:var(--amber)">Tendencia fuerte en 2026.</strong>
+        </div>
+        <div class="cache-note" style="color:var(--orange);background:rgba(249,115,22,.05);border-color:rgba(249,115,22,.15)">Phi-4 · Llama 3.2 · Gemma · Mistral Nemo</div>
+      </div>
+    </div>
+    <div id="s16-note" style="opacity:0;margin-top:20px;padding:14px 24px;background:rgba(249,115,22,.05);border:1px solid rgba(249,115,22,.2);border-radius:10px">
+      <span style="font-family:var(--mono);font-size:1.05rem;color:var(--orange)">
+        💡 <strong>AI FinOps:</strong> la nueva disciplina para mantener apps de IA rentables.
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S17 — FRASES PARA LLEVAR ═══ -->
+<section class="slide" id="s17" style="padding:48px 80px">
+  <div style="width:100%;max-width:1000px">
+    <h2 class="big" id="s17-title" style="opacity:0;text-align:center;margin-bottom:20px">Lo que debes <span class="grad">recordar</span></h2>
+    <div class="frases-list">
+      <div class="frase" id="s17-f1" style="opacity:0">💸 "Tokens pequeños. Facturas gigantes."</div>
+      <div class="frase" id="s17-f2" style="opacity:0">📈 "La IA escala… y la factura también."</div>
+      <div class="frase" id="s17-f3" style="opacity:0">🎯 "No toda tarea merece el modelo más caro."</div>
+      <div class="frase" id="s17-f4" style="opacity:0">👁️ "Observabilidad de tokens es observabilidad financiera."</div>
+      <div class="frase" id="s17-f5" style="opacity:0">⚡ "<span class="mu">Vibe coding crea demos.</span> Ingeniería crea <span class="or">productos sostenibles</span>."</div>
+      <div class="frase" id="s17-f6" style="opacity:0;border-left-color:var(--red)">🚨 "El problema no es que <em>funcione</em>. El problema es poder <span class="re">pagarlo</span>."</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S18 — CIERRE + SPEAKER ═══ -->
+<section class="slide" id="s18">
+  <div style="width:100%;max-width:1000px;display:flex;flex-direction:column;align-items:center;gap:14px">
+    <div class="close-quotes">
+      <div class="cquote" id="s18-q1" style="opacity:0">
+        "Hoy cualquiera puede integrar un modelo."
+      </div>
+      <div class="cquote" id="s18-q2" style="opacity:0">
+        "La diferencia real será quién pueda hacerlo de forma <span class="or"><strong>sostenible</strong></span>."
+      </div>
+      <div class="cquote" id="s18-q3" style="opacity:0">
+        "Una demo impresionante puede durar <span class="gr">5 minutos</span>…
+        pero una factura llega <span class="re">todos los meses</span>."
+      </div>
+    </div>
+    <div id="s18-final" style="opacity:0;padding:20px 30px;background:rgba(249,115,22,.08);border:2px solid rgba(249,115,22,.4);border-radius:14px;text-align:center;width:100%;max-width:1000px">
+      <p style="font-size:2.6rem;font-weight:700;line-height:1.4">
+        La IA no solo necesita <span class="mu">prompts inteligentes</span>.<br>
+        Necesita <span class="or"><strong>decisiones inteligentes</strong></span>. 🧠
+      </p>
+    </div>
+    <div class="speaker-close" id="s18-speaker" style="opacity:0">
+      <img class="av-close" src="https://avatars.githubusercontent.com/u/28914781?v=4" alt="Edwar Díaz"
+        onerror="this.outerHTML='<div style=\'width:76px;height:76px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:#fff;flex-shrink:0\'>ED</div>'">
+      <div style="flex:1">
+        <div class="sc-name">Edwar Díaz</div>
+        <div class="sc-role">AI-First Engineer &amp; Speaker</div>
+        <div class="soc-row" style="margin-top:10px;justify-content:flex-start">
+          <a href="https://edwardiaz.dev" target="_blank" class="soc">edwardiaz.dev</a>
+          <a href="https://github.com/BOTOOM" target="_blank" class="soc">github.com/BOTOOM</a>
+        </div>
+      </div>
+      <div style="text-align:center;flex-shrink:0;margin-left:auto">
+        <div style="font-family:var(--mono);font-size:1.3rem;color:var(--orange);font-weight:700">¡Gracias! 🙏</div>
+        <div style="font-family:var(--mono);font-size:.9rem;color:var(--muted);margin-top:4px">ACM Week 2026</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /deck -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+// ── NAVIGATION ──
+let cur=0, N=18, lock=false;
+
+// Build dots
+const dotsEl=document.getElementById('dots');
+for(let i=0;i<N;i++){
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' on':'');
+  d.onclick=()=>go(i);
+  dotsEl.appendChild(d);
+}
+
+function go(n){
+  if(n<0||n>=N||lock)return;
+  const prev=document.getElementById('s'+(cur+1));
+  const next=document.getElementById('s'+(n+1));
+  if(prev&&prev!==next){prev.classList.remove('active');gsap.set(prev,{opacity:0});}
+  cur=n;
+  next.classList.add('active');
+  gsap.fromTo(next,{opacity:0},{opacity:1,duration:.5,onComplete:()=>{lock=false;}});
+  lock=true;
+  document.getElementById('progress').style.width=((cur+1)/N*100)+'%';
+  document.getElementById('counter').textContent=(cur+1)+' / '+N;
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===cur));
+  anim(cur+1);
+}
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();go(cur+1);}
+  else if(e.key==='ArrowLeft')go(cur-1);
+  else if(e.key==='Escape')go(0);
+});
+
+// Touch swipe
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>50)go(dx<0?cur+1:cur-1);
+});
+
+// ── BACKGROUND PARTICLES ──
+(function(){
+  const cv=document.getElementById('pbg'),ctx=cv.getContext('2d');
+  cv.width=innerWidth;cv.height=innerHeight;
+  const pts=Array.from({length:60},()=>({
+    x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+    vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,
+    r:Math.random()*1.8+.3
+  }));
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.fillStyle='rgba(249,115,22,.5)';
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>cv.width)p.vx*=-1;
+      if(p.y<0||p.y>cv.height)p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  })();
+  window.addEventListener('resize',()=>{cv.width=innerWidth;cv.height=innerHeight;});
+})();
+
+// ── SVG DRAW ARROW HELPER ──
+function drawPath(id,dur,delay){
+  const p=document.getElementById(id);if(!p)return;
+  const len=p.getTotalLength?p.getTotalLength():60;
+  p.style.strokeDasharray=len;p.style.strokeDashoffset=len;
+  gsap.to(p,{strokeDashoffset:0,duration:dur||.7,delay:delay||0,ease:'power2.inOut'});
+}
+
+// ── PER-SLIDE ANIMATIONS ──
+function anim(i){
+  switch(i){
+
+    case 1: // PORTADA
+      gsap.timeline()
+        .fromTo('#s1-badge',{opacity:0,y:18},{opacity:1,y:0,duration:.45})
+        .fromTo('#s1-h1',{opacity:0,y:40},{opacity:1,y:0,duration:.75},'-=.15')
+        .fromTo('#s1-h2',{opacity:0,y:28},{opacity:1,y:0,duration:.65},'-=.3')
+        .fromTo('#s1-sub',{opacity:0,y:16},{opacity:1,y:0,duration:.5},'-=.25')
+        .fromTo('#s1-tags',{opacity:0},{opacity:1,duration:.4},'-=.1')
+        .fromTo('#s1-sp',{opacity:0,scale:.88},{opacity:1,scale:1,duration:.7,ease:'back.out(1.4)'},'-=.35');
+      break;
+
+    case 2: // El demo perfecto
+      gsap.timeline({delay:.1})
+        .fromTo('#s2-pill',{opacity:0,y:12},{opacity:1,y:0,duration:.4})
+        .fromTo('#s2-t1',{opacity:0,y:22},{opacity:1,y:0,duration:.55},'-=.1')
+        .fromTo('#s2-demos',{opacity:0,y:16},{opacity:1,y:0,duration:.5},'+=.3')
+        .fromTo('#s2-t2',{opacity:0,y:20},{opacity:1,y:0,duration:.55},'+=.4')
+        .fromTo('#s2-t3',{opacity:0,scale:.9},{opacity:1,scale:1,duration:.8,ease:'back.out(1.2)'},'+=.5');
+      break;
+
+    case 3: // Las 3 fases
+      gsap.timeline({delay:.1})
+        .fromTo('#s3-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5})
+        .fromTo(['#s3-p1','#s3-p2','#s3-p3'],{opacity:0,y:30,scale:.94},{opacity:1,y:0,scale:1,duration:.6,stagger:.2,ease:'back.out(1.2)'},'-=.1')
+        .fromTo('#s3-boom',{opacity:0,scale:.88},{opacity:1,scale:1,duration:.7,ease:'back.out(1.3)'},'+=.4');
+      break;
+
+    case 4: // El gran error
+      gsap.timeline({delay:.1})
+        .fromTo('#s4-pill',{opacity:0,y:12},{opacity:1,y:0,duration:.4})
+        .fromTo('#s4-l1',{opacity:0,y:18},{opacity:1,y:0,duration:.5},'+=.2')
+        .fromTo('#s4-l2',{opacity:0,scale:.6},{opacity:1,scale:1,duration:.7,ease:'back.out(1.6)'},'+=.3')
+        .fromTo('#s4-l3',{opacity:0,y:18},{opacity:1,y:0,duration:.5},'+=.35')
+        .fromTo('#s4-l4',{opacity:0,scale:.6},{opacity:1,scale:1,duration:.7,ease:'back.out(1.6)'},'+=.35')
+        .fromTo('#s4-quote',{opacity:0,x:-20},{opacity:1,x:0,duration:.6},'+=.4');
+      break;
+
+    case 5: // Tokens
+      gsap.timeline({delay:.1})
+        .fromTo('#s5-pill',{opacity:0,y:12},{opacity:1,y:0,duration:.4})
+        .fromTo('#s5-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5},'-=.1')
+        .fromTo('#s5-sent',{opacity:0,y:12},{opacity:1,y:0,duration:.4},'+=.2')
+        .fromTo('.token-chip',{opacity:0,scale:0},{opacity:1,scale:1,stagger:.1,ease:'back.out(1.7)',duration:.45},'+=.2')
+        .fromTo('#s5-ins1',{opacity:0,y:12},{opacity:1,y:0,duration:.5},'+=.35')
+        .fromTo('#s5-ins2',{opacity:0,y:10},{opacity:1,y:0,duration:.5},'+=.2');
+      break;
+
+    case 6: // Token types
+      gsap.timeline({delay:.1})
+        .fromTo('#s6-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5})
+        .fromTo(['#s6-c1','#s6-c2','#s6-c3'],{opacity:0,y:28,scale:.94},{opacity:1,y:0,scale:1,duration:.6,stagger:.18,ease:'back.out(1.2)'},'-=.1')
+        .fromTo('#s6-quote',{opacity:0,y:10},{opacity:1,y:0,duration:.5},'+=.2');
+      break;
+
+    case 7: // Bar chart
+      gsap.timeline({delay:.1})
+        .fromTo('#s7-pill',{opacity:0,y:12},{opacity:1,y:0,duration:.4})
+        .fromTo('#s7-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5},'-=.1')
+        .fromTo(['#s7-r1','#s7-r2','#s7-r3','#s7-r4'],{opacity:0,x:-20},{opacity:1,x:0,duration:.5,stagger:.14},'-=.1')
+        .call(()=>{
+          ['s7-b1','s7-b2','s7-b3','s7-b4'].forEach((id,k)=>{
+            const b=document.getElementById(id);
+            const w=b.dataset.w;
+            gsap.fromTo(b,{width:'0%'},{width:w+'%',duration:1.1,ease:'power3.out',delay:k*.16});
+          });
+        })
+        .fromTo('#s7-caption',{opacity:0,y:10},{opacity:1,y:0,duration:.5},'+=1.4');
+      break;
+
+    case 8: // Modelo incorrecto
+      gsap.timeline({delay:.1})
+        .fromTo('#s8-pill',{opacity:0,y:12},{opacity:1,y:0,duration:.4})
+        .fromTo('#s8-h2',{opacity:0,y:20},{opacity:1,y:0,duration:.5},'-=.1')
+        .fromTo('#s8-ferrari',{opacity:0,x:-22},{opacity:1,x:0,duration:.6},'+=.2')
+        .fromTo(['#s8-t1','#s8-t2','#s8-t3','#s8-t4'],{opacity:0,y:18,scale:.94},{opacity:1,y:0,scale:1,duration:.5,stagger:.12,ease:'back.out(1.2)'},'+=.2');
+      break;
+
+    case 9: { // Model routing
+      const tl=gsap.timeline({delay:.2});
+      tl.fromTo('#s9-pill',{opacity:0,y:12},{opacity:1,y:0,duration:.4})
+        .fromTo('#s9-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5},'-=.1')
+        .to(['#r-req','#t-req'],{opacity:1,duration:.4},'+=.1')
+        .call(()=>drawPath('p-arr1',.5))
+        .to('#h-arr1',{opacity:1,duration:.01},'+=.45')
+        .to(['#r-router','#t-router'],{opacity:1,duration:.4},'+=.1')
+        .call(()=>{drawPath('p-arr2',.55);drawPath('p-arr3',.55,.08);})
+        .to(['#h-arr2','#h-arr3'],{opacity:1,duration:.01},'+=.55')
+        .to(['#r-sm','#t-sm1','#t-sm2'],{opacity:1,duration:.4,stagger:.06})
+        .to(['#r-lg','#t-lg1','#t-lg2'],{opacity:1,duration:.4,stagger:.06},'-=.3')
+        .to(['#lb1','#lb2'],{opacity:1,duration:.35,stagger:.08},'+=.1')
+        .fromTo('#s9-key',{opacity:0,y:10},{opacity:1,y:0,duration:.4},'+=.15');
+      break;
+    }
+
+    case 10: // Ingeniería de costo
+      gsap.timeline({delay:.1})
+        .fromTo('#s10-pill',{opacity:0,y:12},{opacity:1,y:0,duration:.4})
+        .fromTo('#s10-h2',{opacity:0,y:20},{opacity:1,y:0,duration:.5},'-=.1')
+        .fromTo('#s10-sub',{opacity:0,y:12},{opacity:1,y:0,duration:.4},'-=.1')
+        .fromTo(['#s10-p1','#s10-p2','#s10-p3','#s10-p4'],{opacity:0,y:24,scale:.94},{opacity:1,y:0,scale:1,duration:.55,stagger:.14,ease:'back.out(1.2)'},'+=.1');
+      break;
+
+    case 11: // Problemas comunes
+      gsap.timeline({delay:.1})
+        .fromTo('#s11-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5})
+        .fromTo(['#s11-p1','#s11-p2','#s11-p3','#s11-p4','#s11-p5'],{opacity:0,x:-24},{opacity:1,x:0,duration:.5,stagger:.12},'-=.1')
+        .fromTo('#s11-quote',{opacity:0,y:10},{opacity:1,y:0,duration:.5},'+=.2');
+      break;
+
+    case 12: // Observabilidad
+      gsap.timeline({delay:.1})
+        .fromTo('#s12-pill',{opacity:0,y:12},{opacity:1,y:0,duration:.4})
+        .fromTo('#s12-l1',{opacity:0,y:22},{opacity:1,y:0,duration:.55},'+=.2')
+        .fromTo('#s12-l2',{opacity:0,y:22},{opacity:1,y:0,duration:.55},'+=.35')
+        .fromTo('#s12-l3',{opacity:0,scale:.82},{opacity:1,scale:1,duration:.75,ease:'back.out(1.3)'},'+=.45')
+        .fromTo('#s12-pivot',{opacity:0,y:15},{opacity:1,y:0,duration:.6},'+=.4');
+      break;
+
+    case 13: // Métricas
+      gsap.timeline({delay:.1})
+        .fromTo('#s13-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5})
+        .fromTo('.metric-chip',{opacity:0,scale:.65,y:14},{opacity:1,scale:1,y:0,stagger:.1,duration:.45,ease:'back.out(1.5)'},'-=.1')
+        .fromTo('#s13-note',{opacity:0,y:10},{opacity:1,y:0,duration:.5},'+=.3');
+      break;
+
+    case 14: // La factura
+      gsap.timeline({delay:.1})
+        .fromTo('#s14-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5})
+        .fromTo('#s14-s1',{opacity:0,x:-22},{opacity:1,x:0,duration:.55},'+=.2')
+        .fromTo('#s14-s2',{opacity:0,x:-22},{opacity:1,x:0,duration:.55},'+=.38')
+        .fromTo('#s14-s3',{opacity:0,x:-22},{opacity:1,x:0,duration:.55},'+=.38')
+        .fromTo('#s14-eq',{opacity:0,scale:.88},{opacity:1,scale:1,duration:.6,ease:'back.out(1.2)'},'+=.4')
+        .call(()=>{
+          const obj={val:0};
+          gsap.to(obj,{val:15000,duration:2.5,ease:'power2.out',onUpdate(){
+            document.getElementById('counter15k').textContent='$'+Math.round(obj.val).toLocaleString();
+          }});
+        })
+        .fromTo('#s14-question',{opacity:0,y:14},{opacity:1,y:0,duration:.5},'+=2.8');
+      break;
+
+    case 15: // Forecasting + Context Eng
+      gsap.timeline({delay:.1})
+        .fromTo('#s15-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5})
+        .fromTo(['#s15-c1','#s15-c2'],{opacity:0,y:30,scale:.94},{opacity:1,y:0,scale:1,duration:.65,stagger:.2,ease:'back.out(1.2)'},'-=.1');
+      break;
+
+    case 16: // Caching + SLMs
+      gsap.timeline({delay:.1})
+        .fromTo('#s16-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5})
+        .fromTo(['#s16-c1','#s16-c2'],{opacity:0,y:30,scale:.94},{opacity:1,y:0,scale:1,duration:.65,stagger:.22,ease:'back.out(1.2)'},'-=.1')
+        .fromTo('#s16-note',{opacity:0,y:10},{opacity:1,y:0,duration:.5},'+=.2');
+      break;
+
+    case 17: // Frases para llevar
+      gsap.timeline({delay:.1})
+        .fromTo('#s17-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5})
+        .fromTo(['#s17-f1','#s17-f2','#s17-f3','#s17-f4','#s17-f5','#s17-f6'],{opacity:0,x:-28},{opacity:1,x:0,duration:.55,stagger:.16},'-=.1');
+      break;
+
+    case 18: // Cierre
+      gsap.timeline({delay:.1})
+        .fromTo(['#s18-q1','#s18-q2','#s18-q3'],{opacity:0,y:20},{opacity:1,y:0,duration:.55,stagger:.24})
+        .fromTo('#s18-final',{opacity:0,scale:.94},{opacity:1,scale:1,duration:.65,ease:'back.out(1.2)'},'+=.2')
+        .fromTo('#s18-speaker',{opacity:0,y:18},{opacity:1,y:0,duration:.6},'+=.3');
+      break;
+  }
+}
+
+// ── INITIAL STATE ──
+document.getElementById('progress').style.width=((1/N)*100)+'%';
+document.getElementById('counter').textContent='1 / '+N;
+gsap.set('#s1',{opacity:1});
+anim(1);
+</script>
+</body>
+</html>
