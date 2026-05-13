@@ -382,22 +382,32 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <div class="bar-chart">
       <div class="bar-row" id="s7-r1" style="opacity:0">
         <div class="bar-label">GPT-5.5 (OpenAI)</div>
-        <div class="bar-track"><div class="bar-fill" id="s7-b1" data-w="82" style="background:linear-gradient(90deg,#f97316,#f59e0b)"></div></div>
-        <div class="bar-cost or">$$$</div>
+        <div class="bar-track"><div class="bar-fill" id="s7-b1" data-w="96" style="background:linear-gradient(90deg,#ef4444,#f97316)"></div></div>
+        <div class="bar-cost re">$$$$</div>
       </div>
       <div class="bar-row" id="s7-r2" style="opacity:0">
-        <div class="bar-label">Claude Sonnet 4.6</div>
-        <div class="bar-track"><div class="bar-fill" id="s7-b2" data-w="66" style="background:linear-gradient(90deg,#6366f1,#8b5cf6)"></div></div>
-        <div class="bar-cost" style="color:#818cf8">$$</div>
+        <div class="bar-label">GPT-5 (OpenAI)</div>
+        <div class="bar-track"><div class="bar-fill" id="s7-b2" data-w="80" style="background:linear-gradient(90deg,#f97316,#f59e0b)"></div></div>
+        <div class="bar-cost or">$$$</div>
       </div>
       <div class="bar-row" id="s7-r3" style="opacity:0">
-        <div class="bar-label">Gemini 3.1 Pro</div>
-        <div class="bar-track"><div class="bar-fill" id="s7-b3" data-w="46" style="background:linear-gradient(90deg,#06b6d4,#10b981)"></div></div>
-        <div class="bar-cost gr">$</div>
+        <div class="bar-label">Claude Opus 4.7 (Anthropic)</div>
+        <div class="bar-track"><div class="bar-fill" id="s7-b3" data-w="76" style="background:linear-gradient(90deg,#a855f7,#7c3aed)"></div></div>
+        <div class="bar-cost" style="color:#a855f7">$$$</div>
       </div>
       <div class="bar-row" id="s7-r4" style="opacity:0">
-        <div class="bar-label">Llama 3 (local)</div>
-        <div class="bar-track"><div class="bar-fill" id="s7-b4" data-w="16" style="background:linear-gradient(90deg,#6b7280,#8b8ba7)"></div></div>
+        <div class="bar-label">Claude Sonnet 4.6 (Anthropic)</div>
+        <div class="bar-track"><div class="bar-fill" id="s7-b4" data-w="46" style="background:linear-gradient(90deg,#6366f1,#8b5cf6)"></div></div>
+        <div class="bar-cost" style="color:#818cf8">$$</div>
+      </div>
+      <div class="bar-row" id="s7-r5" style="opacity:0">
+        <div class="bar-label">Gemini 3.1 Pro (Google)</div>
+        <div class="bar-track"><div class="bar-fill" id="s7-b5" data-w="32" style="background:linear-gradient(90deg,#06b6d4,#10b981)"></div></div>
+        <div class="bar-cost gr">$</div>
+      </div>
+      <div class="bar-row" id="s7-r6" style="opacity:0">
+        <div class="bar-label">Llama 3.3 70B (local)</div>
+        <div class="bar-track"><div class="bar-fill" id="s7-b6" data-w="7" style="background:linear-gradient(90deg,#6b7280,#8b8ba7)"></div></div>
         <div class="bar-cost mu">~$0</div>
       </div>
     </div>
@@ -902,15 +912,15 @@ function anim(i){
       gsap.timeline({delay:.1})
         .fromTo('#s7-pill',{opacity:0,y:12},{opacity:1,y:0,duration:.4})
         .fromTo('#s7-title',{opacity:0,y:20},{opacity:1,y:0,duration:.5},'-=.1')
-        .fromTo(['#s7-r1','#s7-r2','#s7-r3','#s7-r4'],{opacity:0,x:-20},{opacity:1,x:0,duration:.5,stagger:.14},'-=.1')
+        .fromTo(['#s7-r1','#s7-r2','#s7-r3','#s7-r4','#s7-r5','#s7-r6'],{opacity:0,x:-20},{opacity:1,x:0,duration:.5,stagger:.12},'-=.1')
         .call(()=>{
-          ['s7-b1','s7-b2','s7-b3','s7-b4'].forEach((id,k)=>{
+          ['s7-b1','s7-b2','s7-b3','s7-b4','s7-b5','s7-b6'].forEach((id,k)=>{
             const b=document.getElementById(id);
             const w=b.dataset.w;
-            gsap.fromTo(b,{width:'0%'},{width:w+'%',duration:1.1,ease:'power3.out',delay:k*.16});
+            gsap.fromTo(b,{width:'0%'},{width:w+'%',duration:1.1,ease:'power3.out',delay:k*.13});
           });
         })
-        .fromTo('#s7-caption',{opacity:0,y:10},{opacity:1,y:0,duration:.5},'+=1.4');
+        .fromTo('#s7-caption',{opacity:0,y:10},{opacity:1,y:0,duration:.5},'+=1.6');
       break;
 
     case 8: // Modelo incorrecto
